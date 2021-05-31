@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/subtle"
@@ -13,31 +14,42 @@ import (
 	"os"
 	"strings"
 
+	"cloud.google.com/go/firestore"
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	firebase "firebase.google.com/go"
 	"github.com/r002/storyline-api/ghservices"
+	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
-type Config struct {
-	Secret string `json:"secret"`
-}
+var ctx context.Context
 
-func LoadConfiguration(file string) Config {
-	var config Config
-	configFile, err := os.Open(file)
+func getGitHubSecret() []byte {
+	// Create the client.
+	ctx = context.Background()
+	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatalf("failed to setup client: %v", err)
 	}
-	defer configFile.Close()
-	jsonParser := json.NewDecoder(configFile)
-	jsonParser.Decode(&config)
-	return config
+	defer client.Close()
+
+	// Build the request.
+	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
+		Name: "projects/r002-cloud/secrets/ghSecret/versions/latest",
+	}
+
+	// Call the API.
+	result, err := client.AccessSecretVersion(ctx, accessRequest)
+	if err != nil {
+		log.Fatalf("failed to access secret version: %v", err)
+	}
+	return result.Payload.Data
 }
 
-var config Config
+var ghSecret []byte
 
 func main() {
-	// Read json config file
-	config = LoadConfiguration("../secret.json")
-	// log.Printf(">> secret: %s", config.Secret)
+	ghSecret = getGitHubSecret()
+	// log.Printf(">> ghSecret: %s", ghSecret)
 
 	http.HandleFunc("/", indexHandler)
 	port := os.Getenv("PORT")
@@ -61,7 +73,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		headerSig := r.Header.Get("X-Hub-Signature-256")
-		key := []byte(config.Secret)
+		key := ghSecret
 		sig := hmac.New(sha256.New, key)
 		sig.Write([]byte(buf.String()))
 		verificationSig := "sha256=" + hex.EncodeToString(sig.Sum(nil))
@@ -79,15 +91,37 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 		var result map[string]interface{}
 		json.Unmarshal([]byte(buf.String()), &result)
-		b, err := json.MarshalIndent(result, "", "  ")
+		// b, err := json.MarshalIndent(result, "", "  ")
+		// if err != nil {
+		// 	fmt.Println("error:", err)
+		// 	http.Error(w, "Error parsing the GitHub Webhook JSON", 500)
+		// 	return
+		// }
+
+		s := result["comment"].(map[string]interface{})["body"].(string)
+		b := []byte(">> Received payload - body: " + s)
+
+		app, err := firebase.NewApp(ctx, nil)
 		if err != nil {
-			fmt.Println("error:", err)
-			http.Error(w, "Error parsing the GitHub Webhook JSON", 500)
-			return
+			log.Fatalln(err)
+		}
+		client, err := app.Firestore(ctx)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer client.Close()
+
+		_, _, err = client.Collection("ghUpdates").Add(ctx, map[string]interface{}{
+			"body": s,
+			"dt":   firestore.ServerTimestamp,
+		})
+		if err != nil {
+			log.Fatalf("Failed adding ghUpdate: %v", err)
 		}
 
 		os.Stdout.Write(b)
 		w.Write(b)
+
 		return
 	}
 

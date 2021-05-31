@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log"
 
+	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
+	// "google.golang.org/api/option"
 )
 
 func main() {
@@ -15,8 +16,9 @@ func main() {
 
 	// Use a service account
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../service-account.json")
-	app, err := firebase.NewApp(ctx, nil, sa)
+	// sa := option.WithCredentialsFile("../service-account.json")
+	// app, err := firebase.NewApp(ctx, nil, sa)
+	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -43,6 +45,7 @@ func main() {
 		"first": "Ada",
 		"last":  "Lovelace",
 		"born":  1815,
+		"dt":    firestore.ServerTimestamp,
 	})
 	if err != nil {
 		log.Fatalf("Failed adding alovelace: %v", err)
