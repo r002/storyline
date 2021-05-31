@@ -41,23 +41,24 @@ func main() {
 		fmt.Println(doc.Data())
 	}
 
-	_, _, err = client.Collection("users").Add(ctx, map[string]interface{}{
+	_, err = client.Collection("ghUpdates").Doc("123").Set(ctx, map[string]interface{}{
 		"first": "Ada",
 		"last":  "Lovelace",
 		"born":  1815,
 		"dt":    firestore.ServerTimestamp,
-	})
+	}, firestore.MergeAll)
+
 	if err != nil {
 		log.Fatalf("Failed adding alovelace: %v", err)
 	}
 
-	_, _, err = client.Collection("users").Add(ctx, map[string]interface{}{
-		"first":  "Alan",
-		"middle": "Mathison",
-		"last":   "Turing",
-		"born":   1912,
-	})
-	if err != nil {
-		log.Fatalf("Failed adding aturing: %v", err)
-	}
+	// _, _, err = client.Collection("ghUpdates").Add(ctx, map[string]interface{}{
+	// 	"first":  "Alan",
+	// 	"middle": "Mathison",
+	// 	"last":   "Turing",
+	// 	"born":   1912,
+	// })
+	// if err != nil {
+	// 	log.Fatalf("Failed adding aturing: %v", err)
+	// }
 }

@@ -91,15 +91,18 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 		var result map[string]interface{}
 		json.Unmarshal([]byte(buf.String()), &result)
-		// b, err := json.MarshalIndent(result, "", "  ")
-		// if err != nil {
-		// 	fmt.Println("error:", err)
-		// 	http.Error(w, "Error parsing the GitHub Webhook JSON", 500)
-		// 	return
-		// }
+		entirePayload, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			fmt.Println("error:", err)
+			http.Error(w, "Error parsing the GitHub Webhook JSON", 500)
+			return
+		}
+		os.Stdout.Write(entirePayload)
 
-		s := result["comment"].(map[string]interface{})["body"].(string)
-		b := []byte(">> Received payload - body: " + s)
+		action := result["action"].(string)
+		body := result["comment"].(map[string]interface{})["body"].(string)
+		issueNo := result["issue"].(map[string]interface{})["number"].(float64)
+		b := []byte(fmt.Sprintf(">> Received payload: %s, %s, %f", action, body, issueNo))
 
 		app, err := firebase.NewApp(ctx, nil)
 		if err != nil {
@@ -112,8 +115,10 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		defer client.Close()
 
 		_, _, err = client.Collection("ghUpdates").Add(ctx, map[string]interface{}{
-			"body": s,
-			"dt":   firestore.ServerTimestamp,
+			"action":  action,
+			"body":    body,
+			"issueNo": issueNo,
+			"dt":      firestore.ServerTimestamp,
 		})
 		if err != nil {
 			log.Fatalf("Failed adding ghUpdate: %v", err)
