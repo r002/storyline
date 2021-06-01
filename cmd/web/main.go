@@ -14,9 +14,7 @@ import (
 	"os"
 	"strings"
 
-	"cloud.google.com/go/firestore"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
-	firebase "firebase.google.com/go"
 	"github.com/r002/storyline-api/ghservices"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
@@ -89,6 +87,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		payload := ghservices.TransformIssue(buf.String())
+		ghservices.WriteToFirestore(payload, ctx)
+
 		var result map[string]interface{}
 		json.Unmarshal([]byte(buf.String()), &result)
 		entirePayload, err := json.MarshalIndent(result, "", "  ")
@@ -98,35 +99,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		os.Stdout.Write(entirePayload)
-
-		action := result["action"].(string)
-		body := result["comment"].(map[string]interface{})["body"].(string)
-		issueNo := result["issue"].(map[string]interface{})["number"].(float64)
-		b := []byte(fmt.Sprintf(">> Received payload: %s, %s, %f", action, body, issueNo))
-
-		app, err := firebase.NewApp(ctx, nil)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		client, err := app.Firestore(ctx)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		defer client.Close()
-
-		_, _, err = client.Collection("ghUpdates").Add(ctx, map[string]interface{}{
-			"action":  action,
-			"body":    body,
-			"issueNo": issueNo,
-			"dt":      firestore.ServerTimestamp,
-		})
-		if err != nil {
-			log.Fatalf("Failed adding ghUpdate: %v", err)
-		}
-
-		os.Stdout.Write(b)
-		w.Write(b)
-
+		w.Write([]byte(">> Payload received"))
 		return
 	}
 
