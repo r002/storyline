@@ -7,16 +7,18 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	firebase "firebase.google.com/go"
 )
 
 type Payload struct {
-	Id      int      `json:"id" firestore:"id"`
-	Action  string   `json:"action" firestore:"action"`
-	Kind    string   `json:"kind" firestore:"kind"`
-	Issue   Issue    `json:"issue" firestore:"issue"`
-	Comment *Comment `json:"comment,omitempty" firestore:"comment,omitempty"`
+	Id      int       `json:"id" firestore:"id"`
+	Action  string    `json:"action" firestore:"action"`
+	Kind    string    `json:"kind" firestore:"kind"`
+	Dt      time.Time `json:"dt" firestore:"dt"`
+	Issue   Issue     `json:"issue" firestore:"issue"`
+	Comment *Comment  `json:"comment,omitempty" firestore:"comment,omitempty"`
 }
 
 type Comment struct {
@@ -28,13 +30,25 @@ type Comment struct {
 }
 
 type Issue struct {
-	Number  int    `json:"number" firestore:"number"`
-	Title   string `json:"title" firestore:"title"`
-	Id      int    `json:"id" firestore:"id"`
-	Body    string `json:"body" firestore:"body"`
-	Created string `json:"created_at" firestore:"created_at"`
-	Updated string `json:"updated_at" firestore:"updated_at"`
-	User    User   `json:"user" firestore:"user"`
+	Number    int        `json:"number" firestore:"number"`
+	Title     string     `json:"title" firestore:"title"`
+	Id        int        `json:"id" firestore:"id"`
+	Body      string     `json:"body" firestore:"body"`
+	Created   string     `json:"created_at" firestore:"created_at"`
+	Updated   string     `json:"updated_at" firestore:"updated_at"`
+	Comments  int        `json:"comments" firestore:"comments"`
+	User      User       `json:"user" firestore:"user"`
+	Labels    *[]Label   `json:"labels" firestore:"labels"`
+	Milestone *Milestone `json:"milestone" firestore:"milestone"`
+}
+
+type Milestone struct {
+	Title string `json:"title" firestore:"title"`
+}
+
+type Label struct {
+	Id   int    `json:"id" firestore:"id"`
+	Name string `json:"name" firestore:"name"`
 }
 
 type User struct {
@@ -65,6 +79,7 @@ func TransformIssue(buf string) Payload {
 		payload.Kind = "issue"
 		payload.Id = payload.Issue.Id
 	}
+	payload.Dt = time.Now()
 
 	return payload
 }
@@ -80,7 +95,7 @@ func WriteToFirestore(payload Payload, ctx context.Context) {
 	}
 	defer client.Close()
 
-	_, err = client.Collection("ghUpdates").Doc(fmt.Sprint(payload.Id)).Set(ctx, payload)
+	_, err = client.Collection("ghUpdates").Doc("latestUpdate").Set(ctx, payload)
 	if err != nil {
 		log.Fatalf("Failed adding ghUpdate: %v", err)
 	}

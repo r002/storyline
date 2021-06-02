@@ -87,19 +87,34 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		payload := ghservices.TransformIssue(buf.String())
-		ghservices.WriteToFirestore(payload, ctx)
-
+		// Unmarshal the json payload
 		var result map[string]interface{}
 		json.Unmarshal([]byte(buf.String()), &result)
-		entirePayload, err := json.MarshalIndent(result, "", "  ")
-		if err != nil {
-			fmt.Println("error:", err)
-			http.Error(w, "Error parsing the GitHub Webhook JSON", 500)
-			return
+
+		// Uncomment this section to print the payload to stdout. Eventually, properly log this in 'verbose' mode. 6/2/21
+		// entirePayload, err := json.MarshalIndent(result, "", "  ")
+		// if err != nil {
+		// 	fmt.Println("error:", err)
+		// 	http.Error(w, "Error parsing the GitHub Webhook JSON", 500)
+		// 	return
+		// }
+		// os.Stdout.Write(entirePayload)
+
+		// Only act on "Daily Accomplishment" milestone cards
+		if _, ok := result["issue"].(map[string]interface{})["milestone"].(map[string]interface{}); ok {
+			if result["issue"].(map[string]interface{})["milestone"].(map[string]interface{})["title"].(string) == "Daily Accomplishment" {
+				payload := ghservices.TransformIssue(buf.String())
+				ghservices.WriteToFirestore(payload, ctx)
+				w.Write([]byte(">> Payload received & processed."))
+				os.Stdout.Write([]byte(">> Payload received & processed."))
+			} else {
+				w.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
+				os.Stdout.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
+			}
+		} else {
+			w.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
+			os.Stdout.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
 		}
-		os.Stdout.Write(entirePayload)
-		w.Write([]byte(">> Payload received"))
 		return
 	}
 
