@@ -20,8 +20,10 @@ import (
 )
 
 var ctx context.Context
+var ghSecret []byte
+var ghToken []byte
 
-func getGitHubSecret() []byte {
+func init() {
 	// Create the client.
 	ctx = context.Background()
 	client, err := secretmanager.NewClient(ctx)
@@ -30,25 +32,26 @@ func getGitHubSecret() []byte {
 	}
 	defer client.Close()
 
-	// Build the request.
 	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
 		Name: "projects/r002-cloud/secrets/ghSecret/versions/latest",
 	}
-
-	// Call the API.
 	result, err := client.AccessSecretVersion(ctx, accessRequest)
 	if err != nil {
-		log.Fatalf("failed to access secret version: %v", err)
+		log.Fatalf("failed to access secret ghSecret version: %v", err)
 	}
-	return result.Payload.Data
+	ghSecret = result.Payload.Data
+
+	accessRequest = &secretmanagerpb.AccessSecretVersionRequest{
+		Name: "projects/r002-cloud/secrets/ghToken/versions/latest",
+	}
+	result, err = client.AccessSecretVersion(ctx, accessRequest)
+	if err != nil {
+		log.Fatalf("failed to access secret ghToken version: %v", err)
+	}
+	ghToken = result.Payload.Data
 }
 
-var ghSecret []byte
-
 func main() {
-	ghSecret = getGitHubSecret()
-	// log.Printf(">> ghSecret: %s", ghSecret)
-
 	http.HandleFunc("/", indexHandler)
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -77,9 +80,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		verificationSig := "sha256=" + hex.EncodeToString(sig.Sum(nil))
 		verified := subtle.ConstantTimeCompare([]byte(headerSig), []byte(verificationSig))
 
-		fmt.Println(`>> r.Header.Get("X-Hub-Signature-256"):`, headerSig)
-		fmt.Println(`>> Verification signature:`, verificationSig)
-		fmt.Println(`>> Signature comparison: `, verified)
+		// fmt.Println(`>> r.Header.Get("X-Hub-Signature-256"):`, headerSig)
+		// fmt.Println(`>> Verification signature:`, verificationSig)
+		// fmt.Println(`>> Signature comparison: `, verified)
 
 		if verified == 0 {
 			fmt.Println("Error: Signatures don't match!")
@@ -100,20 +103,35 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		// }
 		// os.Stdout.Write(entirePayload)
 
+		payload := ghservices.TransformIssue(buf.String())
+
+		// Milestone all newly "opened" cards that are labeled "daily accomplishment" as "Daily Accomplishment"
+		if payload.Action == "opened" {
+			for _, label := range *payload.Issue.Labels {
+				// fmt.Println(">> Label:", label.Name)
+				if label.Name == "daily accomplishment" {
+					ghservices.WriteToGitHub(ghToken, payload.Issue.Number)
+					w.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'."))
+					os.Stdout.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'.\n"))
+					return
+				}
+			}
+		}
+
 		// Only act on "Daily Accomplishment" milestone cards
 		if _, ok := result["issue"].(map[string]interface{})["milestone"].(map[string]interface{}); ok {
 			if result["issue"].(map[string]interface{})["milestone"].(map[string]interface{})["title"].(string) == "Daily Accomplishment" {
-				payload := ghservices.TransformIssue(buf.String())
+				// payload := ghservices.TransformIssue(buf.String())
 				ghservices.WriteToFirestore(payload, ctx)
 				w.Write([]byte(">> Payload received & processed."))
-				os.Stdout.Write([]byte(">> Payload received & processed."))
+				os.Stdout.Write([]byte(">> Payload received & processed.\n"))
 			} else {
 				w.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
-				os.Stdout.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
+				os.Stdout.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'.\n"))
 			}
 		} else {
 			w.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
-			os.Stdout.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
+			os.Stdout.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'.\n"))
 		}
 		return
 	}
