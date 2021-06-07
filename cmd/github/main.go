@@ -27,7 +27,7 @@ func init() {
 
 	// Build the request.
 	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
-		Name: "projects/r002-cloud/secrets/ghToken/versions/latest",
+		Name: "projects/r002-cloud/secrets/8xg3vE8Ie_E/versions/latest",
 	}
 
 	// Call the API.
@@ -46,7 +46,7 @@ type Issue struct {
 }
 
 func main() {
-	url := "https://api.github.com/repos/r002/storyline-api/issues/3"
+	url := "https://api.github.com/repos/r002/codenewbie/issues/78"
 
 	// Create a Bearer string by appending string access token
 	bearer := "token " + ghToken

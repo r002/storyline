@@ -42,11 +42,11 @@ func init() {
 	ghSecret = result.Payload.Data
 
 	accessRequest = &secretmanagerpb.AccessSecretVersionRequest{
-		Name: "projects/r002-cloud/secrets/ghToken/versions/latest",
+		Name: "projects/r002-cloud/secrets/8xg3vE8Ie_E/versions/latest",
 	}
 	result, err = client.AccessSecretVersion(ctx, accessRequest)
 	if err != nil {
-		log.Fatalf("failed to access secret ghToken version: %v", err)
+		log.Fatalf("failed to access secret token version: %v", err)
 	}
 	ghToken = result.Payload.Data
 }
