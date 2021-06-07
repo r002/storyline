@@ -41,12 +41,13 @@ func init() {
 type Issue struct {
 	// Title     string   `json:"title"`
 	// Body      string   `json:"body"`
-	// Labels    []string `json:"labels"`
-	Milestone int `json:"milestone"`
+	Labels []string `json:"labels"`
+	// Milestone int      `json:"milestone"`
 }
 
 func main() {
 	url := "https://api.github.com/repos/r002/codenewbie/issues/78"
+	// url := "https://api.github.com/repos/r002/storyline-api/issues/3"
 
 	// Create a Bearer string by appending string access token
 	bearer := "token " + ghToken
@@ -54,8 +55,8 @@ func main() {
 	issue := &Issue{
 		// Title:     "Test from go server - title7",
 		// Body:      "Test from go server - body7",
-		// Labels:    []string{"invalid", "duplicate"},
-		Milestone: 1,
+		Labels: []string{"testnoexist"},
+		// Milestone: 1,
 	}
 
 	postBody, _ := json.Marshal(issue)

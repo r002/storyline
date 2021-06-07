@@ -24,7 +24,6 @@ var ghSecret []byte
 var ghToken []byte
 
 func init() {
-	// Create the client.
 	ctx = context.Background()
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
