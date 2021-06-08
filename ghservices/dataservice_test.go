@@ -62,8 +62,8 @@ func init() {
 
 func TestCreateCard(t *testing.T) {
 	issue := &IssueShort{
-		Title:     "Test from go server",
-		Body:      "Test from go server",
+		Title:     "Test from go server-title",
+		Body:      "Test from go server-body",
 		Labels:    []string{"question"},
 		Milestone: 1,
 	}
@@ -88,7 +88,30 @@ func TestCreateCard(t *testing.T) {
 }
 
 func TestUpdateCard(t *testing.T) {
-	// TODO
+	expectedTitle := "Test from go server-title"
+	expectedBody := "Test from go server-body"
+	expectedLabel := "monday"
+	expectedMilestone := "Daily Accomplishment"
+
+	issueReturn := UpdateCard(ghToken, 16, "2021-06-08T01:37:41Z")
+
+	fmt.Println(">> Updated issue title:", issueReturn.Title)
+	fmt.Println(">> Updated issue body:", issueReturn.Body)
+	fmt.Println(">> Updated issue label:", (*issueReturn.Labels)[0].Name)
+	fmt.Println(">> Updated issue milestone:", issueReturn.Milestone.Title)
+
+	if issueReturn.Title != expectedTitle {
+		t.Errorf("Title incorrect; got: %s, want: %s", issueReturn.Title, expectedTitle)
+	}
+	if issueReturn.Body != expectedBody {
+		t.Errorf("Body incorrect; got: %s, want: %s", issueReturn.Body, expectedBody)
+	}
+	if (*issueReturn.Labels)[0].Name != expectedLabel {
+		t.Errorf("Label incorrect; got: %s, want: %s", (*issueReturn.Labels)[0].Name, expectedLabel)
+	}
+	if issueReturn.Milestone.Title != expectedMilestone {
+		t.Errorf("Milestone incorrect; got: %s, want: %s", issueReturn.Milestone.Title, expectedMilestone)
+	}
 }
 
 func TestGetCards(t *testing.T) {

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	firebase "firebase.google.com/go"
@@ -92,6 +93,57 @@ type IssueShort struct {
 	Milestone int      `json:"milestone"`
 }
 
+type UpdateIssue struct {
+	Labels    []string `json:"labels"`
+	Milestone int      `json:"milestone"`
+}
+
+// This function updates the card with the "Daily Accomplishment" milestone
+// and also labels the card with the day it was created. Eg. "Monday"
+//
+func UpdateCard(ghToken []byte, issueNo int, createdAt string) Issue {
+	url := "https://api.github.com/repos/studydash/cards-qa/issues/" + fmt.Sprint(issueNo)
+	bearer := "token " + string(ghToken)
+	dateWithTz := strings.ReplaceAll(createdAt, "Z", "-0400") // Hack: Assumes all users are ET. Fix later. 6/7/21
+	t, _ := time.Parse(time.RFC3339, dateWithTz)
+	issue := &UpdateIssue{
+		Labels:    []string{strings.ToLower(fmt.Sprint(t.Weekday()))},
+		Milestone: 1,
+	}
+	postBody, _ := json.Marshal(issue)
+	responseBody := bytes.NewBuffer(postBody)
+
+	// Create a new request using http
+	req, _ := http.NewRequest("POST", url, responseBody)
+
+	// add authorization header to the req
+	req.Header.Add("Authorization", bearer)
+	req.Header.Add("accept", "application/vnd.github.v3+json")
+
+	// Send req using http Client
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error on response.\n[ERROR] -", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error while reading the response body bytes:", err)
+	}
+
+	// Print debug payload return
+	var result map[string]interface{}
+	json.Unmarshal(body, &result)
+	s, _ := json.MarshalIndent(result, "", "  ")
+	fmt.Println(string(s))
+
+	var issueReturn Issue
+	json.Unmarshal(body, &issueReturn)
+	return issueReturn
+}
+
 func CreateCard(ghToken []byte, issue *IssueShort) Issue {
 	url := "https://api.github.com/repos/studydash/cards-qa/issues"
 	bearer := "token " + string(ghToken)
@@ -113,23 +165,23 @@ func CreateCard(ghToken []byte, issue *IssueShort) Issue {
 	}
 	defer resp.Body.Close()
 
-	header, err := json.MarshalIndent(resp.Header, "", "  ")
-	if err != nil {
-		fmt.Println("Error while reading the response header map:", err)
-	}
+	// header, err := json.MarshalIndent(resp.Header, "", "  ")
+	// if err != nil {
+	// 	fmt.Println("Error while reading the response header map:", err)
+	// }
+	// fmt.Println(string(header))
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error while reading the response body bytes:", err)
 	}
-	fmt.Println(string(header))
-
-	var result map[string]interface{}
-	json.Unmarshal(body, &result)
-	s, _ := json.MarshalIndent(result, "", "  ")
-	fmt.Println(string(s))
+	// var result map[string]interface{}
+	// json.Unmarshal(body, &result)
+	// s, _ := json.MarshalIndent(result, "", "  ")
+	// fmt.Println(string(s))
 
 	var issueReturn Issue
-	json.Unmarshal(s, &issueReturn)
+	json.Unmarshal(body, &issueReturn)
 	return issueReturn
 }
 
@@ -145,7 +197,6 @@ func WriteToGitHub(ghToken []byte, issueNo int) {
 		// Labels:    []string{"invalid", "duplicate"},
 		Milestone: 1,
 	}
-
 	postBody, _ := json.Marshal(issue)
 	responseBody := bytes.NewBuffer(postBody)
 
