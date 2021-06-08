@@ -73,17 +73,20 @@ func TestCreateCard(t *testing.T) {
 	fmt.Println(">> Created issue label:", (*issueReturn.Labels)[0].Name)
 	fmt.Println(">> Created issue milestone:", issueReturn.Milestone.Title)
 
-	if issueReturn.Title != issue.Title {
-		t.Errorf("Title incorrect; got: %s, want: %s", issueReturn.Title, issue.Title)
+	testCases := []struct {
+		desc string
+		got  string
+		want string
+	}{
+		{"Title", issueReturn.Title, issue.Title},
+		{"Body", issueReturn.Body, issue.Body},
+		{"Label", (*issueReturn.Labels)[0].Name, issue.Labels[0]},
+		{"Milestone", issueReturn.Milestone.Title, "Daily Accomplishment"},
 	}
-	if issueReturn.Body != issue.Body {
-		t.Errorf("Body incorrect; got: %s, want: %s", issueReturn.Body, issue.Body)
-	}
-	if (*issueReturn.Labels)[0].Name != issue.Labels[0] {
-		t.Errorf("Label incorrect; got: %s, want: %s", (*issueReturn.Labels)[0].Name, issue.Labels[0])
-	}
-	if issueReturn.Milestone.Title != "Daily Accomplishment" {
-		t.Errorf("Milestone incorrect; got: %s, want: %s", issueReturn.Milestone.Title, "Daily Accomplishment")
+	for _, tc := range testCases {
+		if tc.got != tc.want {
+			t.Errorf("%q incorrect; got: %q, want: %q", tc.desc, tc.got, tc.want)
+		}
 	}
 }
 
