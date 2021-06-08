@@ -98,16 +98,21 @@ type UpdateIssue struct {
 	Milestone int      `json:"milestone"`
 }
 
+func getWeekdayInLoc(dt string, region string) string {
+	tm, _ := time.Parse(time.RFC3339, dt) // Eg. "2021-06-08T01:37:41Z"
+	loc, _ := time.LoadLocation(region)   // Eg. "America/New_York"
+	return fmt.Sprint(tm.In(loc).Weekday())
+}
+
 // This function updates the card with the "Daily Accomplishment" milestone
 // and also labels the card with the day it was created. Eg. "Monday"
 //
 func UpdateCard(ghToken []byte, issueNo int, createdAt string) Issue {
 	url := "https://api.github.com/repos/studydash/cards-qa/issues/" + fmt.Sprint(issueNo)
 	bearer := "token " + string(ghToken)
-	tm, _ := time.Parse(time.RFC3339, createdAt)
-	loc, _ := time.LoadLocation("America/New_York") // Hack: Assumes all users are ET. Fix later. 6/8/21
+	weekday := getWeekdayInLoc(createdAt, "America/New_York") // HACK: Assumes all users are ET. TODO: Fix later. 6/8/21
 	issue := &UpdateIssue{
-		Labels:    []string{strings.ToLower(fmt.Sprint(tm.In(loc).Weekday()))},
+		Labels:    []string{strings.ToLower(weekday)},
 		Milestone: 1,
 	}
 	postBody, _ := json.Marshal(issue)

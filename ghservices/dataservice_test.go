@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
-	"time"
 	// secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	// secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
@@ -62,13 +60,22 @@ func init() {
 // 	ghToken = result.Payload.Data
 // }
 
-func TestTzWeekdayConv(t *testing.T) {
-	date := "2021-06-08T01:37:41Z"
-	//	date := "2021-06-08T18:32:54Z"
-	tm, _ := time.Parse(time.RFC3339, date)
-	fmt.Println(strings.ToLower(fmt.Sprint(tm.Weekday())))
-	loc, _ := time.LoadLocation("America/New_York")
-	fmt.Printf("New York Day: %s\n", tm.In(loc).Weekday())
+func TestGetWeekdayInLoc(t *testing.T) {
+	testCases := []struct {
+		dt     string
+		region string
+		want   string
+	}{
+		{"2021-06-08T01:37:41Z", "America/New_York", "Monday"},
+		{"2021-06-08T18:32:54Z", "America/New_York", "Tuesday"},
+	}
+
+	for _, tc := range testCases {
+		got := getWeekdayInLoc(tc.dt, tc.region)
+		if got != tc.want {
+			t.Errorf("%q/%q ➡ %q; want: %q", tc.dt, tc.region, got, tc.want)
+		}
+	}
 }
 
 func TestCreateCard(t *testing.T) {
