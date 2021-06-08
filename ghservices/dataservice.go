@@ -104,10 +104,10 @@ type UpdateIssue struct {
 func UpdateCard(ghToken []byte, issueNo int, createdAt string) Issue {
 	url := "https://api.github.com/repos/studydash/cards-qa/issues/" + fmt.Sprint(issueNo)
 	bearer := "token " + string(ghToken)
-	dateWithTz := strings.ReplaceAll(createdAt, "Z", "-0400") // Hack: Assumes all users are ET. Fix later. 6/7/21
-	t, _ := time.Parse(time.RFC3339, dateWithTz)
+	tm, _ := time.Parse(time.RFC3339, createdAt)
+	loc, _ := time.LoadLocation("America/New_York") // Hack: Assumes all users are ET. Fix later. 6/8/21
 	issue := &UpdateIssue{
-		Labels:    []string{strings.ToLower(fmt.Sprint(t.Weekday()))},
+		Labels:    []string{strings.ToLower(fmt.Sprint(tm.In(loc).Weekday()))},
 		Milestone: 1,
 	}
 	postBody, _ := json.Marshal(issue)

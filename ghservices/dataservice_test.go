@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
+	"time"
 	// secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	// secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
@@ -60,6 +62,15 @@ func init() {
 // 	ghToken = result.Payload.Data
 // }
 
+func TestTzWeekdayConv(t *testing.T) {
+	date := "2021-06-08T01:37:41Z"
+	//	date := "2021-06-08T18:32:54Z"
+	tm, _ := time.Parse(time.RFC3339, date)
+	fmt.Println(strings.ToLower(fmt.Sprint(tm.Weekday())))
+	loc, _ := time.LoadLocation("America/New_York")
+	fmt.Printf("New York Day: %s\n", tm.In(loc).Weekday())
+}
+
 func TestCreateCard(t *testing.T) {
 	issue := &IssueShort{
 		Title:     "Test from go server-title",
@@ -91,29 +102,29 @@ func TestCreateCard(t *testing.T) {
 }
 
 func TestUpdateCard(t *testing.T) {
-	expectedTitle := "Test from go server-title"
-	expectedBody := "Test from go server-body"
-	expectedLabel := "monday"
-	expectedMilestone := "Daily Accomplishment"
-
-	issueReturn := UpdateCard(ghToken, 16, "2021-06-08T01:37:41Z")
+	// issueReturn := UpdateCard(ghToken, 16, "2021-06-08T01:37:41Z") // Monday
+	issueReturn := UpdateCard(ghToken, 18, "2021-06-08T18:32:54Z") // Tuesday
 
 	fmt.Println(">> Updated issue title:", issueReturn.Title)
 	fmt.Println(">> Updated issue body:", issueReturn.Body)
 	fmt.Println(">> Updated issue label:", (*issueReturn.Labels)[0].Name)
 	fmt.Println(">> Updated issue milestone:", issueReturn.Milestone.Title)
 
-	if issueReturn.Title != expectedTitle {
-		t.Errorf("Title incorrect; got: %s, want: %s", issueReturn.Title, expectedTitle)
+	testCases := []struct {
+		desc string
+		got  string
+		want string
+	}{
+		{"Title", issueReturn.Title, "Test from go server-title"},
+		{"Body", issueReturn.Body, "Test from go server-body"},
+		// {"Label", (*issueReturn.Labels)[0].Name, "monday"},
+		{"Label", (*issueReturn.Labels)[0].Name, "tuesday"},
+		{"Milestone", issueReturn.Milestone.Title, "Daily Accomplishment"},
 	}
-	if issueReturn.Body != expectedBody {
-		t.Errorf("Body incorrect; got: %s, want: %s", issueReturn.Body, expectedBody)
-	}
-	if (*issueReturn.Labels)[0].Name != expectedLabel {
-		t.Errorf("Label incorrect; got: %s, want: %s", (*issueReturn.Labels)[0].Name, expectedLabel)
-	}
-	if issueReturn.Milestone.Title != expectedMilestone {
-		t.Errorf("Milestone incorrect; got: %s, want: %s", issueReturn.Milestone.Title, expectedMilestone)
+	for _, tc := range testCases {
+		if tc.got != tc.want {
+			t.Errorf("%q incorrect; got: %q, want: %q", tc.desc, tc.got, tc.want)
+		}
 	}
 }
 
