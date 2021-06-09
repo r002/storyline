@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -67,6 +68,24 @@ type Card struct {
 	User    User
 }
 
+var GH_REPO_ENDPOINT string
+var FIRESTORE_ENDPOINT string
+
+func init() {
+	APP_ENV := os.Getenv("STUDYDASH_ENV")
+	switch APP_ENV {
+	case "qa":
+		GH_REPO_ENDPOINT = "https://api.github.com/repos/studydash/cards-qa"
+		FIRESTORE_ENDPOINT = "ghUpdatesQa"
+	case "prod":
+		GH_REPO_ENDPOINT = "https://api.github.com/repos/r002/codenewbie"
+		FIRESTORE_ENDPOINT = "ghUpdates"
+	}
+	fmt.Println(">> Running dataservice init().................", APP_ENV)
+	log.Println(">> GH_REPO_ENDPOINT:", GH_REPO_ENDPOINT)
+	log.Println(">> FIRESTORE_ENDPOINT:", FIRESTORE_ENDPOINT)
+}
+
 func TransformIssue(buf string) Payload {
 	var result map[string]interface{}
 	json.Unmarshal([]byte(buf), &result)
@@ -106,9 +125,8 @@ func getWeekdayInLoc(dt string, region string) string {
 
 // This function updates the card with the "Daily Accomplishment" milestone
 // and also labels the card with the day it was created. Eg. "Monday"
-//
 func UpdateCard(ghToken []byte, issueNo int, createdAt string) Issue {
-	url := "https://api.github.com/repos/studydash/cards-qa/issues/" + fmt.Sprint(issueNo)
+	url := GH_REPO_ENDPOINT + "/issues/" + fmt.Sprint(issueNo)
 	bearer := "token " + string(ghToken)
 	weekday := getWeekdayInLoc(createdAt, "America/New_York") // HACK: Assumes all users are ET. TODO: Fix later. 6/8/21
 	issue := &UpdateIssue{
@@ -138,11 +156,11 @@ func UpdateCard(ghToken []byte, issueNo int, createdAt string) Issue {
 		fmt.Println("Error while reading the response body bytes:", err)
 	}
 
-	// Print debug payload return
-	var result map[string]interface{}
-	json.Unmarshal(body, &result)
-	s, _ := json.MarshalIndent(result, "", "  ")
-	fmt.Println(string(s))
+	// // Print debug payload return
+	// var result map[string]interface{}
+	// json.Unmarshal(body, &result)
+	// s, _ := json.MarshalIndent(result, "", "  ")
+	// fmt.Println(string(s))
 
 	var issueReturn Issue
 	json.Unmarshal(body, &issueReturn)
@@ -150,7 +168,7 @@ func UpdateCard(ghToken []byte, issueNo int, createdAt string) Issue {
 }
 
 func CreateCard(ghToken []byte, issue *IssueShort) Issue {
-	url := "https://api.github.com/repos/studydash/cards-qa/issues"
+	url := GH_REPO_ENDPOINT + "/issues"
 	bearer := "token " + string(ghToken)
 	postBody, _ := json.Marshal(issue)
 	responseBody := bytes.NewBuffer(postBody)
@@ -190,48 +208,6 @@ func CreateCard(ghToken []byte, issue *IssueShort) Issue {
 	return issueReturn
 }
 
-func WriteToGitHub(ghToken []byte, issueNo int) {
-	url := "https://api.github.com/repos/r002/codenewbie/issues/" + fmt.Sprint(issueNo)
-
-	// Create a Bearer string by appending string access token
-	bearer := "token " + string(ghToken)
-
-	issue := &IssueShort{
-		// Title:     "Test from go server - title7",
-		// Body:      "Test from go server - body7",
-		// Labels:    []string{"invalid", "duplicate"},
-		Milestone: 1,
-	}
-	postBody, _ := json.Marshal(issue)
-	responseBody := bytes.NewBuffer(postBody)
-
-	// Create a new request using http
-	req, _ := http.NewRequest("POST", url, responseBody)
-
-	// add authorization header to the req
-	req.Header.Add("Authorization", bearer)
-	req.Header.Add("accept", "application/vnd.github.v3+json")
-
-	// Send req using http Client
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error on response.\n[ERROR] -", err)
-	}
-	defer resp.Body.Close()
-
-	// header, err := json.MarshalIndent(resp.Header, "", "  ")
-	// if err != nil {
-	// 	fmt.Println("Error while reading the response header map:", err)
-	// }
-	// body, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	fmt.Println("Error while reading the response body bytes:", err)
-	// }
-	// fmt.Println(string(header))
-	// fmt.Println(string(body))
-}
-
 func WriteToFirestore(payload Payload, ctx context.Context) {
 	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
@@ -243,14 +219,14 @@ func WriteToFirestore(payload Payload, ctx context.Context) {
 	}
 	defer client.Close()
 
-	_, err = client.Collection("ghUpdates").Doc("latestUpdate").Set(ctx, payload)
+	_, err = client.Collection(FIRESTORE_ENDPOINT).Doc("latestUpdate").Set(ctx, payload)
 	if err != nil {
-		log.Fatalf("Failed adding ghUpdate: %v", err)
+		log.Fatalf("Failed adding latestUpdate: %v", err)
 	}
 }
 
 func GetCards() []Card {
-	uri := "https://api.github.com/repos/r002/codenewbie/issues?since=2021-05-03&labels=daily%20accomplishment&sort=created&direction=desc&per_page=100"
+	uri := GH_REPO_ENDPOINT + "/issues?since=2021-05-03&labels=daily%20accomplishment&sort=created&direction=desc&per_page=100"
 	resp, err := http.Get(uri)
 	if err != nil {
 		log.Fatalln(err)

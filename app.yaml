@@ -1,2 +1,4 @@
 runtime: go115
 main: ./cmd/web
+env_variables:
+  STUDYDASH_ENV: "prod"

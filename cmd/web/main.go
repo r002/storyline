@@ -20,10 +20,26 @@ import (
 )
 
 var ctx context.Context
-var ghSecret []byte
+var ghWebhook []byte
 var ghToken []byte
 
 func init() {
+	var keyGhWebhook string
+	var keyGhToken string
+	APP_ENV := os.Getenv("STUDYDASH_ENV")
+	switch APP_ENV {
+	case "qa":
+		keyGhWebhook = "qa-gh-webhook"
+		keyGhToken = "gh-studygroup-bot-tok"
+	case "prod":
+		keyGhWebhook = "prod-gh-webhook"
+		keyGhToken = "gh-studygroup-bot-tok"
+	}
+	fmt.Println(">> Running main init().................", APP_ENV)
+	log.Println(">> Setting up server. Env:", APP_ENV)
+	log.Println(">> keyGhWebhook:", keyGhWebhook)
+	log.Println(">> keyGhToken:", keyGhToken)
+
 	ctx = context.Background()
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
@@ -32,25 +48,26 @@ func init() {
 	defer client.Close()
 
 	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
-		Name: "projects/r002-cloud/secrets/ghSecret/versions/latest",
+		Name: fmt.Sprintf("projects/r002-cloud/secrets/%s/versions/latest", keyGhWebhook),
 	}
 	result, err := client.AccessSecretVersion(ctx, accessRequest)
 	if err != nil {
-		log.Fatalf("failed to access secret ghSecret version: %v", err)
+		log.Fatalf("failed to access secret %q version: %v", keyGhWebhook, err)
 	}
-	ghSecret = result.Payload.Data
+	ghWebhook = result.Payload.Data
 
 	accessRequest = &secretmanagerpb.AccessSecretVersionRequest{
-		Name: "projects/r002-cloud/secrets/8xg3vE8Ie_E/versions/latest",
+		Name: fmt.Sprintf("projects/r002-cloud/secrets/%s/versions/latest", keyGhToken),
 	}
 	result, err = client.AccessSecretVersion(ctx, accessRequest)
 	if err != nil {
-		log.Fatalf("failed to access secret token version: %v", err)
+		log.Fatalf("failed to access secret %q version: %v", keyGhToken, err)
 	}
 	ghToken = result.Payload.Data
 }
 
 func main() {
+	fmt.Println(">> Running main main().................")
 	http.HandleFunc("/", indexHandler)
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -65,88 +82,95 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/payload" {
-		buf := new(strings.Builder)
-		_, err := io.Copy(buf, r.Body)
-		if err != nil {
-			panic(err)
-		}
+	switch path := r.URL.Path; path {
+	case "/cards":
+		handleCards(w)
+	case "/payload":
+		handlePayload(w, r)
+	default:
+		http.NotFound(w, r) // If no paths match, return "Not Found"
+	}
+}
 
-		headerSig := r.Header.Get("X-Hub-Signature-256")
-		key := ghSecret
-		sig := hmac.New(sha256.New, key)
-		sig.Write([]byte(buf.String()))
-		verificationSig := "sha256=" + hex.EncodeToString(sig.Sum(nil))
-		verified := subtle.ConstantTimeCompare([]byte(headerSig), []byte(verificationSig))
+// Get all cards
+func handleCards(w http.ResponseWriter) {
+	cards := ghservices.GetCards()
+	b, err := json.MarshalIndent(cards, "", "  ")
+	if err != nil {
+		fmt.Println("error:", err)
+		http.Error(w, "Error parsing the GitHub API JSON", 500)
+		return
+	}
+	w.Write(b)
+}
 
-		// fmt.Println(`>> r.Header.Get("X-Hub-Signature-256"):`, headerSig)
-		// fmt.Println(`>> Verification signature:`, verificationSig)
-		// fmt.Println(`>> Signature comparison: `, verified)
+func handlePayload(w http.ResponseWriter, r *http.Request) {
+	buf := new(strings.Builder)
+	_, err := io.Copy(buf, r.Body)
+	if err != nil {
+		panic(err)
+	}
 
-		if verified == 0 {
-			fmt.Println("Error: Signatures don't match!")
-			http.Error(w, "Error: Signatures don't match!", 500)
-			return
-		}
+	headerSig := r.Header.Get("X-Hub-Signature-256")
+	key := ghWebhook
+	sig := hmac.New(sha256.New, key)
+	sig.Write([]byte(buf.String()))
+	verificationSig := "sha256=" + hex.EncodeToString(sig.Sum(nil))
+	verified := subtle.ConstantTimeCompare([]byte(headerSig), []byte(verificationSig))
 
-		// Unmarshal the json payload
-		var result map[string]interface{}
-		json.Unmarshal([]byte(buf.String()), &result)
+	// fmt.Println(`>> r.Header.Get("X-Hub-Signature-256"):`, headerSig)
+	// fmt.Println(`>> Verification signature:`, verificationSig)
+	// fmt.Println(`>> Signature comparison: `, verified)
 
-		// Uncomment this section to print the payload to stdout. Eventually, properly log this in 'verbose' mode. 6/2/21
-		// entirePayload, err := json.MarshalIndent(result, "", "  ")
-		// if err != nil {
-		// 	fmt.Println("error:", err)
-		// 	http.Error(w, "Error parsing the GitHub Webhook JSON", 500)
-		// 	return
-		// }
-		// os.Stdout.Write(entirePayload)
+	if verified == 0 {
+		fmt.Println("Error: Signatures don't match!")
+		http.Error(w, "Error: Signatures don't match!", 500)
+		return
+	}
 
-		payload := ghservices.TransformIssue(buf.String())
+	// Unmarshal the json payload
+	var result map[string]interface{}
+	json.Unmarshal([]byte(buf.String()), &result)
 
-		// Milestone all newly "opened" cards that are labeled "daily accomplishment" as "Daily Accomplishment"
-		if payload.Action == "opened" {
-			for _, label := range *payload.Issue.Labels {
-				// fmt.Println(">> Label:", label.Name)
-				if label.Name == "daily accomplishment" {
-					ghservices.WriteToGitHub(ghToken, payload.Issue.Number)
-					w.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'."))
-					os.Stdout.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'.\n"))
-					return
-				}
+	// Uncomment this section to print the payload to stdout. Eventually, properly log this in 'verbose' mode. 6/2/21
+	// entirePayload, err := json.MarshalIndent(result, "", "  ")
+	// if err != nil {
+	// 	fmt.Println("error:", err)
+	// 	http.Error(w, "Error parsing the GitHub Webhook JSON", 500)
+	// 	return
+	// }
+	// os.Stdout.Write(entirePayload)
+
+	payload := ghservices.TransformIssue(buf.String())
+
+	// Set all newly "opened" cards that have a Label="daily accomplishment" to Milestone="Daily Accomplishment"
+	// Change the Label from "daily accomplishment" to "da"
+	if payload.Action == "opened" {
+		for _, label := range *payload.Issue.Labels {
+			// fmt.Println(">> Label:", label.Name)
+			if label.Name == "daily accomplishment" {
+				ghservices.UpdateCard(ghToken, payload.Issue.Number, payload.Issue.Created)
+
+				w.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'."))
+				os.Stdout.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'.\n"))
+				return
 			}
 		}
+	}
 
-		// Only act on "Daily Accomplishment" milestone cards
-		if _, ok := result["issue"].(map[string]interface{})["milestone"].(map[string]interface{}); ok {
-			if result["issue"].(map[string]interface{})["milestone"].(map[string]interface{})["title"].(string) == "Daily Accomplishment" {
-				// payload := ghservices.TransformIssue(buf.String())
-				ghservices.WriteToFirestore(payload, ctx)
-				w.Write([]byte(">> Payload received & processed."))
-				os.Stdout.Write([]byte(">> Payload received & processed.\n"))
-			} else {
-				w.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
-				os.Stdout.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'.\n"))
-			}
+	// Only act on "Daily Accomplishment" milestone cards
+	if _, ok := result["issue"].(map[string]interface{})["milestone"].(map[string]interface{}); ok {
+		if result["issue"].(map[string]interface{})["milestone"].(map[string]interface{})["title"].(string) == "Daily Accomplishment" {
+			// payload := ghservices.TransformIssue(buf.String())
+			ghservices.WriteToFirestore(payload, ctx)
+			w.Write([]byte(">> Payload received & processed."))
+			os.Stdout.Write([]byte(">> Payload received & processed.\n"))
 		} else {
 			w.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
 			os.Stdout.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'.\n"))
 		}
-		return
+	} else {
+		w.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'."))
+		os.Stdout.Write([]byte(">> Payload received & ignored. Milestone isn't 'Daily Accomplishment'.\n"))
 	}
-
-	if r.URL.Path == "/cards" {
-		cards := ghservices.GetCards()
-		b, err := json.MarshalIndent(cards, "", "  ")
-		if err != nil {
-			fmt.Println("error:", err)
-			http.Error(w, "Error parsing the GitHub API JSON", 500)
-			return
-		}
-		w.Write(b)
-		return
-	}
-
-	// If no paths match, return "Not Found"
-	http.NotFound(w, r)
 }
