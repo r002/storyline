@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"github.com/r002/storyline-api/config"
 	"github.com/r002/storyline-api/ghservices"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
@@ -24,17 +25,10 @@ var ghWebhook []byte
 var ghToken []byte
 
 func init() {
-	var keyGhWebhook string
-	var keyGhToken string
-	APP_ENV := os.Getenv("STUDYDASH_ENV")
-	switch APP_ENV {
-	case "qa":
-		keyGhWebhook = "qa-gh-webhook"
-		keyGhToken = "gh-studygroup-bot-tok"
-	case "prod":
-		keyGhWebhook = "prod-gh-webhook"
-		keyGhToken = "gh-studygroup-bot-tok"
-	}
+	APP_ENV := config.GetEnvVars().Env
+	keyGhWebhook := config.GetEnvVars().KeyGhWebhook
+	keyGhToken := config.GetEnvVars().KeyGhToken
+
 	fmt.Println(">> Running main init().................", APP_ENV)
 	log.Println(">> Setting up server. Env:", APP_ENV)
 	log.Println(">> keyGhWebhook:", keyGhWebhook)

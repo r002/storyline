@@ -8,11 +8,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	firebase "firebase.google.com/go"
+	"github.com/r002/storyline-api/config"
 )
 
 type Payload struct {
@@ -72,15 +72,10 @@ var GH_REPO_ENDPOINT string
 var FIRESTORE_ENDPOINT string
 
 func init() {
-	APP_ENV := os.Getenv("STUDYDASH_ENV")
-	switch APP_ENV {
-	case "qa":
-		GH_REPO_ENDPOINT = "https://api.github.com/repos/studydash/cards-qa"
-		FIRESTORE_ENDPOINT = "ghUpdatesQa"
-	case "prod":
-		GH_REPO_ENDPOINT = "https://api.github.com/repos/r002/codenewbie"
-		FIRESTORE_ENDPOINT = "ghUpdates"
-	}
+	APP_ENV := config.GetEnvVars().Env
+	GH_REPO_ENDPOINT = config.GetEnvVars().GhRepoEndpoint
+	FIRESTORE_ENDPOINT = config.GetEnvVars().FirestoreEndpoint
+
 	fmt.Println(">> Running dataservice init().................", APP_ENV)
 	log.Println(">> GH_REPO_ENDPOINT:", GH_REPO_ENDPOINT)
 	log.Println(">> FIRESTORE_ENDPOINT:", FIRESTORE_ENDPOINT)
