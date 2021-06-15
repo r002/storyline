@@ -81,9 +81,31 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		handleCards(w)
 	case "/payload":
 		handlePayload(w, r)
+	case "/info":
+		handleInfo(w)
 	default:
 		http.NotFound(w, r) // If no paths match, return "Not Found"
 	}
+}
+
+func handleInfo(w http.ResponseWriter) {
+	var sb strings.Builder
+	sb.WriteString("<!DOCTYPE html>\n")
+	sb.WriteString("<html>\n")
+	sb.WriteString("<body>\n")
+
+	sb.WriteString("<h3>Config</h3>\n")
+	sb.WriteString(fmt.Sprintf("Env: %s<br />\n", config.GetEnvVars().Env))
+	sb.WriteString(fmt.Sprintf("KeyGhWebhook: %s<br />\n", config.GetEnvVars().KeyGhWebhook))
+	sb.WriteString(fmt.Sprintf("KeyGhToken: %s<br />\n", config.GetEnvVars().KeyGhToken))
+	sb.WriteString(fmt.Sprintf("GhRepoEndpoint: %s<br />\n", config.GetEnvVars().GhRepoEndpoint))
+	sb.WriteString(fmt.Sprintf("FirestoreEndpoint: %s<br />\n", config.GetEnvVars().FirestoreEndpoint))
+
+	sb.WriteString(fmt.Sprintf("Version: %s | Last built: %s<br />\n", "VERSION #", "BUILD DATE"))
+
+	sb.WriteString("</body>\n")
+	sb.WriteString("</html>\n")
+	w.Write([]byte(sb.String()))
 }
 
 // Get all cards

@@ -221,7 +221,7 @@ func WriteToFirestore(payload Payload, ctx context.Context) {
 }
 
 func GetCards() []Card {
-	uri := GH_REPO_ENDPOINT + "/issues?since=2021-05-03&labels=daily%20accomplishment&sort=created&direction=desc&per_page=100"
+	uri := GH_REPO_ENDPOINT + "/issues?since=2021-05-03&milestone=1&sort=created&direction=desc&per_page=100"
 	resp, err := http.Get(uri)
 	if err != nil {
 		log.Fatalln(err)
