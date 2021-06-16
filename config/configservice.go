@@ -27,27 +27,35 @@ var config *Config
 
 func GetEnvVars() EnvVars {
 	if config == nil {
-		_, ok := os.LookupEnv("STUDYDASH_ENV")
-		if ok {
-			log.Println(">> Loading config from env vars")
-			config = new(Config)
-			(*config).EnvVars.Env = os.Getenv("STUDYDASH_ENV")
-			(*config).EnvVars.KeyGhWebhook = os.Getenv("STUDYDASH_KEY_GH_WEBHOOK")
-			(*config).EnvVars.KeyGhToken = os.Getenv("STUDYDASH_KEY_GH_TOKEN")
-			(*config).EnvVars.GhRepoEndpoint = os.Getenv("STUDYDASH_GH_REPO_ENDPOINT")
-			(*config).EnvVars.FirestoreEndpoint = os.Getenv("STUDYDASH_FIRESTORE_ENDPOINT")
+		// If an ENV `*.yaml` is passed in, always honor that first
+		if len(os.Args) == 2 {
+			loadConfigFromFile(os.Args[1])
 		} else {
-			configFile := "./app.qa.yaml"
-			log.Printf(">> Loading config from file: %q,", configFile)
-			buf, err := ioutil.ReadFile(configFile)
-			if err != nil {
-				fmt.Printf(">> Error reading config: %q", configFile)
-			}
-			err = yaml.Unmarshal(buf, &config)
-			if err != nil {
-				fmt.Printf(">> Error in file %q: %v", configFile, err)
+			_, ok := os.LookupEnv("STUDYDASH_ENV")
+			if ok {
+				log.Println(">> Loading config from env vars")
+				config = new(Config)
+				(*config).EnvVars.Env = os.Getenv("STUDYDASH_ENV")
+				(*config).EnvVars.KeyGhWebhook = os.Getenv("STUDYDASH_KEY_GH_WEBHOOK")
+				(*config).EnvVars.KeyGhToken = os.Getenv("STUDYDASH_KEY_GH_TOKEN")
+				(*config).EnvVars.GhRepoEndpoint = os.Getenv("STUDYDASH_GH_REPO_ENDPOINT")
+				(*config).EnvVars.FirestoreEndpoint = os.Getenv("STUDYDASH_FIRESTORE_ENDPOINT")
+			} else {
+				loadConfigFromFile("./app.qa.yaml")
 			}
 		}
 	}
 	return config.EnvVars
+}
+
+func loadConfigFromFile(configFile string) {
+	log.Printf(">> Loading config from file: %q,", configFile)
+	buf, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		fmt.Printf(">> Error reading config: %q", configFile)
+	}
+	err = yaml.Unmarshal(buf, &config)
+	if err != nil {
+		fmt.Printf(">> Error in file %q: %v", configFile, err)
+	}
 }

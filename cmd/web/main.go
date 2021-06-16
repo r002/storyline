@@ -89,23 +89,51 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleInfo(w http.ResponseWriter) {
-	var sb strings.Builder
-	sb.WriteString("<!DOCTYPE html>\n")
-	sb.WriteString("<html>\n")
-	sb.WriteString("<body>\n")
+	s := fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html>
+			<style>
+				body {
+					margin: 40px;
+				}
 
-	sb.WriteString("<h3>Config</h3>\n")
-	sb.WriteString(fmt.Sprintf("Env: %s<br />\n", config.GetEnvVars().Env))
-	sb.WriteString(fmt.Sprintf("KeyGhWebhook: %s<br />\n", config.GetEnvVars().KeyGhWebhook))
-	sb.WriteString(fmt.Sprintf("KeyGhToken: %s<br />\n", config.GetEnvVars().KeyGhToken))
-	sb.WriteString(fmt.Sprintf("GhRepoEndpoint: %s<br />\n", config.GetEnvVars().GhRepoEndpoint))
-	sb.WriteString(fmt.Sprintf("FirestoreEndpoint: %s<br />\n", config.GetEnvVars().FirestoreEndpoint))
+				.wrapper {
+					display: grid;
+					grid-template-columns: 100px 300px;
+					grid-gap: 10px;
+					background-color: #fff;
+					color: #444;
+				}
 
-	sb.WriteString(fmt.Sprintf("Version: %s | Last built: %s<br />\n", "VERSION #", "BUILD DATE"))
-
-	sb.WriteString("</body>\n")
-	sb.WriteString("</html>\n")
-	w.Write([]byte(sb.String()))
+				.box {
+					background-color: #444;
+					color: #fff;
+					border-radius: 5px;
+					padding: 5px;
+					font-size: 12px;
+				}
+			</style>
+		<body>
+			<div class="wrapper">
+				<div class="box">Env</div>								<div class="box">%[1]s</div>
+				<div class="box">KeyGhWebhook</div>				<div class="box">%[2]s</div>
+				<div class="box">KeyGhToken</div>					<div class="box">%[3]s</div>
+				<div class="box">GhRepoEndpoint</div> 		<div class="box">%[4]s</div>
+				<div class="box">FirestoreEndpoint</div>	<div class="box">%[5]s</div>
+				<div class="box">Version</div>						<div class="box">%[6]s</div>
+				<div class="box">Last built</div>					<div class="box">%[7]s</div>
+			</div>
+		</body>
+		</html>`,
+		config.GetEnvVars().Env,
+		config.GetEnvVars().KeyGhWebhook,
+		config.GetEnvVars().KeyGhToken,
+		config.GetEnvVars().GhRepoEndpoint,
+		config.GetEnvVars().FirestoreEndpoint,
+		"VERSION #",
+		"BUILD DATE",
+	)
+	w.Write([]byte(s))
 }
 
 // Get all cards
