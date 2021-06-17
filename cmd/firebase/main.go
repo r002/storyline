@@ -34,7 +34,7 @@ type User struct {
 }
 
 func main() {
-	log.Printf(">> Hello from cmd/fb/main.go")
+	log.Printf(">> Hello from cmd/firebase/main.go")
 
 	buf := `
 {

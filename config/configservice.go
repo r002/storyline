@@ -41,7 +41,8 @@ func GetEnvVars() EnvVars {
 				(*config).EnvVars.GhRepoEndpoint = os.Getenv("STUDYDASH_GH_REPO_ENDPOINT")
 				(*config).EnvVars.FirestoreEndpoint = os.Getenv("STUDYDASH_FIRESTORE_ENDPOINT")
 			} else {
-				loadConfigFromFile("./app.qa.yaml")
+				loadConfigFromFile(os.Getenv("STUDYDASH_CONFIG"))
+				// loadConfigFromFile("./app.qa.yaml")
 			}
 		}
 	}

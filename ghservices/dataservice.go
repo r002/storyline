@@ -15,68 +15,17 @@ import (
 	"github.com/r002/storyline-api/config"
 )
 
-type Payload struct {
-	Id      int       `json:"id" firestore:"id"`
-	Action  string    `json:"action" firestore:"action"`
-	Kind    string    `json:"kind" firestore:"kind"`
-	Dt      time.Time `json:"dt" firestore:"dt"`
-	Issue   Issue     `json:"issue" firestore:"issue"`
-	Comment *Comment  `json:"comment,omitempty" firestore:"comment,omitempty"`
-}
-
-type Comment struct {
-	Created string `json:"created_at" firestore:"created_at"`
-	Updated string `json:"updated_at" firestore:"updated_at"`
-	Id      int    `json:"id" firestore:"id"`
-	Body    string `json:"body" firestore:"body"`
-	User    User   `json:"user" firestore:"user"`
-}
-
-type Issue struct {
-	Number    int        `json:"number" firestore:"number"`
-	Title     string     `json:"title" firestore:"title"`
-	Id        int        `json:"id" firestore:"id"`
-	Body      string     `json:"body" firestore:"body"`
-	Created   string     `json:"created_at" firestore:"created_at"`
-	Updated   string     `json:"updated_at" firestore:"updated_at"`
-	Comments  int        `json:"comments" firestore:"comments"`
-	User      User       `json:"user" firestore:"user"`
-	Labels    *[]Label   `json:"labels" firestore:"labels"`
-	Milestone *Milestone `json:"milestone" firestore:"milestone"`
-}
-
-type Milestone struct {
-	Title string `json:"title" firestore:"title"`
-}
-
-type Label struct {
-	Id   int    `json:"id" firestore:"id"`
-	Name string `json:"name" firestore:"name"`
-}
-
-type User struct {
-	Login string `json:"login" firestore:"login"`
-	Id    int    `json:"id" firestore:"id"`
-}
-
-type Card struct {
-	Title   string `json:"title"`
-	Created string `json:"created_at"`
-	Updated string `json:"updated_at"`
-	Number  int    `json:"number"`
-	Id      int    `json:"id"`
-	User    User
-}
-
 var GH_REPO_ENDPOINT string
 var FIRESTORE_ENDPOINT string
 
 func init() {
+	fmt.Println(">> Running 'ghservices' package init().................")
+
 	APP_ENV := config.GetEnvVars().Env
 	GH_REPO_ENDPOINT = config.GetEnvVars().GhRepoEndpoint
 	FIRESTORE_ENDPOINT = config.GetEnvVars().FirestoreEndpoint
 
-	fmt.Println(">> Running dataservice init().................", APP_ENV)
+	log.Println(">> APP_ENV:", APP_ENV)
 	log.Println(">> GH_REPO_ENDPOINT:", GH_REPO_ENDPOINT)
 	log.Println(">> FIRESTORE_ENDPOINT:", FIRESTORE_ENDPOINT)
 }

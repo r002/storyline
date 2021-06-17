@@ -82,7 +82,7 @@ func TestCreateCard(t *testing.T) {
 	issue := &IssueShort{
 		Title:     "Test from go server-title",
 		Body:      "Test from go server-body",
-		Labels:    []string{"question"},
+		Labels:    []string{"daily accomplishment"},
 		Milestone: 1,
 	}
 	issueReturn := CreateCard(ghToken, issue)
