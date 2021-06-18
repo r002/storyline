@@ -1,7 +1,6 @@
 package ghservices
 
 import (
-	// "context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,8 +8,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	// secretmanager "cloud.google.com/go/secretmanager/apiv1"
-	// secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
 // var ctx context.Context
@@ -35,32 +32,6 @@ func init() {
 	ghWebhookSecret = []byte(obj.Webhook)
 	ghToken = []byte(obj.Token)
 }
-
-//// Get credentials from GCP Secret Manager
-// func init() {
-// 	ctx = context.Background()
-// 	client, err := secretmanager.NewClient(ctx)
-// 	if err != nil {
-// 		log.Fatalf("failed to setup client: %v", err)
-// 	}
-// 	defer client.Close()
-// 	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
-// 		Name: "projects/r002-cloud/secrets/ghSecret/versions/latest",
-// 	}
-// 	result, err := client.AccessSecretVersion(ctx, accessRequest)
-// 	if err != nil {
-// 		log.Fatalf("failed to access secret ghSecret version: %v", err)
-// 	}
-// 	ghSecret = result.Payload.Data
-// 	accessRequest = &secretmanagerpb.AccessSecretVersionRequest{
-// 		Name: "projects/r002-cloud/secrets/8xg3vE8Ie_E/versions/latest",
-// 	}
-// 	result, err = client.AccessSecretVersion(ctx, accessRequest)
-// 	if err != nil {
-// 		log.Fatalf("failed to access secret token version: %v", err)
-// 	}
-// 	ghToken = result.Payload.Data
-// }
 
 func TestGetWeekdayInLoc(t *testing.T) {
 	testCases := []struct {
