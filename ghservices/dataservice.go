@@ -19,8 +19,6 @@ var GH_REPO_ENDPOINT string
 var FIRESTORE_ENDPOINT string
 
 func init() {
-	fmt.Println(">> Running 'ghservices' package init().................")
-
 	APP_ENV := config.GetEnvVars().Env
 	GH_REPO_ENDPOINT = config.GetEnvVars().GhRepoEndpoint
 	FIRESTORE_ENDPOINT = config.GetEnvVars().FirestoreEndpoint

@@ -29,7 +29,6 @@ func init() {
 	keyGhWebhook := config.GetEnvVars().KeyGhWebhook
 	keyGhToken := config.GetEnvVars().KeyGhToken
 
-	fmt.Println(">> Running main init().................", APP_ENV)
 	log.Println(">> Setting up server. Env:", APP_ENV)
 	log.Println(">> keyGhWebhook:", keyGhWebhook)
 	log.Println(">> keyGhToken:", keyGhToken)
@@ -61,7 +60,6 @@ func init() {
 }
 
 func main() {
-	fmt.Println(">> Running main main().................")
 	http.HandleFunc("/", indexHandler)
 	port := os.Getenv("PORT")
 	if port == "" {

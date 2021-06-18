@@ -29,11 +29,12 @@ func GetEnvVars() EnvVars {
 	if config == nil {
 		// If an ENV `*.yaml` is passed in, always honor that first
 		if len(os.Args) == 2 {
+			log.Println(">> Loading config from: os.Args[1]")
 			loadConfigFromFile(os.Args[1])
 		} else {
 			_, ok := os.LookupEnv("STUDYDASH_ENV")
 			if ok {
-				log.Println(">> Loading config from env vars")
+				log.Println(">> Loading config from: env vars")
 				config = new(Config)
 				(*config).EnvVars.Env = os.Getenv("STUDYDASH_ENV")
 				(*config).EnvVars.KeyGhWebhook = os.Getenv("STUDYDASH_KEY_GH_WEBHOOK")
@@ -41,8 +42,8 @@ func GetEnvVars() EnvVars {
 				(*config).EnvVars.GhRepoEndpoint = os.Getenv("STUDYDASH_GH_REPO_ENDPOINT")
 				(*config).EnvVars.FirestoreEndpoint = os.Getenv("STUDYDASH_FIRESTORE_ENDPOINT")
 			} else {
+				log.Println(">> Loading config from: STUDYDASH_CONFIG")
 				loadConfigFromFile(os.Getenv("STUDYDASH_CONFIG"))
-				// loadConfigFromFile("./app.qa.yaml")
 			}
 		}
 	}
