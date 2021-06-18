@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
+	"time"
 	// secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	// secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
@@ -15,22 +17,22 @@ import (
 var ghWebhookSecret []byte
 var ghToken []byte
 
-// Get credentials locally
+// Get credentials locally. Used only in this test file.
 func init() {
 	data, err := ioutil.ReadFile("../../secret.json")
 	if err != nil {
 		fmt.Print(err)
 	}
 	type GhCredentials struct {
-		WebhookSecret string `json:"gh-codenewbie-webook"`
-		Token         string `json:"gh-studygroup-bot-pat"`
+		Webhook string `json:"gh-cards-qa-webook"` // Currently unused in tests. 6/18/21
+		Token   string `json:"gh-studygroup-bot-tok"`
 	}
 	var obj GhCredentials
 	err = json.Unmarshal(data, &obj)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	ghWebhookSecret = []byte(obj.WebhookSecret)
+	ghWebhookSecret = []byte(obj.Webhook)
 	ghToken = []byte(obj.Token)
 }
 
@@ -80,16 +82,14 @@ func TestGetWeekdayInLoc(t *testing.T) {
 
 func TestCreateCard(t *testing.T) {
 	issue := &IssueShort{
-		Title:     "Test from go server-title",
-		Body:      "Test from go server-body",
-		Labels:    []string{"daily accomplishment"},
-		Milestone: 1,
+		Title:  "Test local from go server-title",
+		Body:   "Test local from go server-body",
+		Labels: []string{"daily accomplishment"},
 	}
 	issueReturn := CreateCard(ghToken, issue)
-	fmt.Println(">> Created issue title:", issueReturn.Title)
-	fmt.Println(">> Created issue body:", issueReturn.Body)
-	fmt.Println(">> Created issue label:", (*issueReturn.Labels)[0].Name)
-	fmt.Println(">> Created issue milestone:", issueReturn.Milestone.Title)
+	t.Log(">> Created issue title:", issueReturn.Title)
+	t.Log(">> Created issue body:", issueReturn.Body)
+	t.Log(">> Created issue label:", (*issueReturn.Labels)[0].Name)
 
 	testCases := []struct {
 		desc string
@@ -99,7 +99,6 @@ func TestCreateCard(t *testing.T) {
 		{"Title", issueReturn.Title, issue.Title},
 		{"Body", issueReturn.Body, issue.Body},
 		{"Label", (*issueReturn.Labels)[0].Name, issue.Labels[0]},
-		{"Milestone", issueReturn.Milestone.Title, "Daily Accomplishment"},
 	}
 	for _, tc := range testCases {
 		if tc.got != tc.want {
@@ -109,23 +108,27 @@ func TestCreateCard(t *testing.T) {
 }
 
 func TestUpdateCard(t *testing.T) {
-	// issueReturn := UpdateCard(ghToken, 16, "2021-06-08T01:37:41Z") // Monday
-	issueReturn := UpdateCard(ghToken, 18, "2021-06-08T18:32:54Z") // Tuesday
+	issueInput := &IssueShort{
+		Title:  "Test local from go server-title",
+		Body:   "Test local from go server-body",
+		Labels: []string{"daily accomplishment"},
+	}
+	issueReturn := CreateCard(ghToken, issueInput)
+	issueReturn = UpdateCard(ghToken, issueReturn)
 
-	fmt.Println(">> Updated issue title:", issueReturn.Title)
-	fmt.Println(">> Updated issue body:", issueReturn.Body)
-	fmt.Println(">> Updated issue label:", (*issueReturn.Labels)[0].Name)
-	fmt.Println(">> Updated issue milestone:", issueReturn.Milestone.Title)
+	t.Log(">> Updated issue title:", issueReturn.Title)
+	t.Log(">> Updated issue body:", issueReturn.Body)
+	t.Log(">> Updated issue label:", (*issueReturn.Labels)[0].Name)
+	t.Log(">> Updated issue milestone:", issueReturn.Milestone.Title)
 
 	testCases := []struct {
 		desc string
 		got  string
 		want string
 	}{
-		{"Title", issueReturn.Title, "Test from go server-title"},
-		{"Body", issueReturn.Body, "Test from go server-body"},
-		// {"Label", (*issueReturn.Labels)[0].Name, "monday"},
-		{"Label", (*issueReturn.Labels)[0].Name, "tuesday"},
+		{"Title", issueReturn.Title, issueInput.Title},
+		{"Body", issueReturn.Body, issueInput.Body},
+		{"Label", (*issueReturn.Labels)[0].Name, strings.ToLower(fmt.Sprint(time.Now().Weekday()))},
 		{"Milestone", issueReturn.Milestone.Title, "Daily Accomplishment"},
 	}
 	for _, tc := range testCases {

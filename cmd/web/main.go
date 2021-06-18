@@ -193,8 +193,7 @@ func handlePayload(w http.ResponseWriter, r *http.Request) {
 		for _, label := range *payload.Issue.Labels {
 			// fmt.Println(">> Label:", label.Name)
 			if label.Name == "daily accomplishment" {
-				ghservices.UpdateCard(ghToken, payload.Issue.Number, payload.Issue.Created)
-
+				ghservices.UpdateCard(ghToken, payload.Issue)
 				w.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'."))
 				os.Stdout.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'.\n"))
 				return

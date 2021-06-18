@@ -50,10 +50,9 @@ func TransformIssue(buf string) Payload {
 }
 
 type IssueShort struct {
-	Title     string   `json:"title"`
-	Body      string   `json:"body"`
-	Labels    []string `json:"labels"`
-	Milestone int      `json:"milestone"`
+	Title  string   `json:"title"`
+	Body   string   `json:"body"`
+	Labels []string `json:"labels"`
 }
 
 type UpdateIssue struct {
@@ -69,15 +68,15 @@ func getWeekdayInLoc(dt string, region string) string {
 
 // This function updates the card with the "Daily Accomplishment" milestone
 // and also labels the card with the day it was created. Eg. "Monday"
-func UpdateCard(ghToken []byte, issueNo int, createdAt string) Issue {
-	url := GH_REPO_ENDPOINT + "/issues/" + fmt.Sprint(issueNo)
+func UpdateCard(ghToken []byte, issue Issue) Issue {
+	url := GH_REPO_ENDPOINT + "/issues/" + fmt.Sprint(issue.Number)
 	bearer := "token " + string(ghToken)
-	weekday := getWeekdayInLoc(createdAt, "America/New_York") // HACK: Assumes all users are ET. TODO: Fix later. 6/8/21
-	issue := &UpdateIssue{
+	weekday := getWeekdayInLoc(issue.Created, "America/New_York") // HACK: Assumes all users are ET. TODO: Fix later. 6/8/21
+	updateIssue := &UpdateIssue{
 		Labels:    []string{strings.ToLower(weekday)},
 		Milestone: 1,
 	}
-	postBody, _ := json.Marshal(issue)
+	postBody, _ := json.Marshal(updateIssue)
 	responseBody := bytes.NewBuffer(postBody)
 
 	// Create a new request using http
@@ -152,6 +151,7 @@ func CreateCard(ghToken []byte, issue *IssueShort) Issue {
 	return issueReturn
 }
 
+// TODO: Deprecate this method. Replace with fireserv.UpdateDoc(..)
 func WriteToFirestore(payload Payload, ctx context.Context) {
 	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
