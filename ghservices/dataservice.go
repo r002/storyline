@@ -2,7 +2,6 @@ package ghservices
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -11,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	firebase "firebase.google.com/go"
 	"github.com/r002/storyline-api/config"
 )
 
@@ -147,24 +145,6 @@ func CreateCard(ghToken []byte, issue *IssueShort) Issue {
 	var issueReturn Issue
 	json.Unmarshal(body, &issueReturn)
 	return issueReturn
-}
-
-// TODO: Deprecate this method. Replace with fireserv.UpdateDoc(..)
-func WriteToFirestore(payload Payload, ctx context.Context) {
-	app, err := firebase.NewApp(ctx, nil)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	client, err := app.Firestore(ctx)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer client.Close()
-
-	_, err = client.Collection(FIRESTORE_ENDPOINT).Doc("latestUpdate").Set(ctx, payload)
-	if err != nil {
-		log.Fatalf("Failed adding latestUpdate: %v", err)
-	}
 }
 
 func GetCards() []Card {

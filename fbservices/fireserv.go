@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/r002/storyline-api/ghservices"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -41,6 +42,17 @@ func ReadCollection(collection string) []*firestore.DocumentSnapshot {
 		log.Fatalf("Error fetching collection: %v", err)
 	}
 	return all
+}
+
+func SendPayload(collection string, doc string, payload ghservices.Payload) error {
+	client = getClient()
+	// defer client.Close()
+	_, err := client.Collection(collection).Doc(doc).Set(ctx, payload)
+
+	if err != nil {
+		log.Fatalf("Failed sending payload to %s/%s: %v", collection, doc, err)
+	}
+	return err
 }
 
 func CreateDoc(collection string, doc string, payload map[string]interface{}) error {

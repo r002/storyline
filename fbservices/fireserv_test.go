@@ -3,8 +3,10 @@ package fbservices
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/r002/storyline-api/ghservices"
 )
 
 func TestReadCollection(t *testing.T) {
@@ -45,6 +47,37 @@ func TestDeleteDoc(t *testing.T) {
 	if err != nil {
 		t.Log("Firestore doc deletion test failed!", err)
 		t.Fail()
+	}
+}
+
+func TestSendPayload(t *testing.T) {
+	mockUser := ghservices.User{
+		Login: "testUser",
+		Id:    789,
+	}
+	mockIssue := ghservices.Issue{
+		Number:    234,
+		Title:     "TestPayload Title",
+		Id:        345,
+		Body:      "TestPayload Body",
+		Created:   "TestPayload Created",
+		Updated:   "TestPayload Updated",
+		Comments:  0,
+		User:      mockUser,
+		Labels:    nil,
+		Milestone: nil,
+	}
+	mockPayload := ghservices.Payload{
+		Id:      123,
+		Action:  "Test Creation",
+		Kind:    "issue",
+		Dt:      time.Now(),
+		Issue:   mockIssue,
+		Comment: nil,
+	}
+	err := SendPayload("ghUpdatesQa", "latestUpdate", mockPayload)
+	if err != nil {
+		t.Fatalf("Failed sending payload: %v", err)
 	}
 }
 

@@ -16,6 +16,7 @@ import (
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/r002/storyline-api/config"
+	"github.com/r002/storyline-api/fbservices"
 	"github.com/r002/storyline-api/ghservices"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
@@ -23,15 +24,18 @@ import (
 var ctx context.Context
 var ghWebhook []byte
 var ghToken []byte
+var FIRESTORE_ENDPOINT string
 
 func init() {
 	APP_ENV := config.GetEnvVars().Env
 	keyGhWebhook := config.GetEnvVars().KeyGhWebhook
 	keyGhToken := config.GetEnvVars().KeyGhToken
+	FIRESTORE_ENDPOINT = config.GetEnvVars().FirestoreEndpoint
 
 	log.Println(">> Setting up server. Env:", APP_ENV)
 	log.Println(">> keyGhWebhook:", keyGhWebhook)
 	log.Println(">> keyGhToken:", keyGhToken)
+	log.Println(">> FIRESTORE_ENDPOINT:", FIRESTORE_ENDPOINT)
 
 	ctx = context.Background()
 	client, err := secretmanager.NewClient(ctx)
@@ -128,8 +132,8 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().KeyGhToken,
 		config.GetEnvVars().GhRepoEndpoint,
 		config.GetEnvVars().FirestoreEndpoint,
-		"VERSION #",
-		"BUILD DATE",
+		"0.0.1",
+		"Sat - June 19, 2021",
 	)
 	w.Write([]byte(s))
 }
@@ -202,8 +206,7 @@ func handlePayload(w http.ResponseWriter, r *http.Request) {
 	// Only act on "Daily Accomplishment" milestone cards
 	if _, ok := result["issue"].(map[string]interface{})["milestone"].(map[string]interface{}); ok {
 		if result["issue"].(map[string]interface{})["milestone"].(map[string]interface{})["title"].(string) == "Daily Accomplishment" {
-			// payload := ghservices.TransformIssue(buf.String())
-			ghservices.WriteToFirestore(payload, ctx)
+			fbservices.SendPayload(FIRESTORE_ENDPOINT, "latestUpdate", payload)
 			w.Write([]byte(">> Payload received & processed."))
 			os.Stdout.Write([]byte(">> Payload received & processed.\n"))
 		} else {
