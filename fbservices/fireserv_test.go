@@ -50,6 +50,7 @@ func TestDeleteDoc(t *testing.T) {
 	}
 }
 
+// This test sends a payload to Firestore
 func TestSendPayload(t *testing.T) {
 	mockUser := ghservices.User{
 		Login: "testUser",

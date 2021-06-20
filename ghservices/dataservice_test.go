@@ -53,11 +53,12 @@ func TestGetWeekdayInLoc(t *testing.T) {
 
 func TestCreateCard(t *testing.T) {
 	issue := &IssueShort{
-		Title:  "Test local from go server-title",
-		Body:   "Test local from go server-body",
+		Title:  "Test local issue-title",
+		Body:   "Test local issue-body",
 		Labels: []string{"daily accomplishment"},
 	}
 	issueReturn := CreateCard(ghToken, issue)
+	t.Log(">> Created issue number:", issueReturn.Number)
 	t.Log(">> Created issue title:", issueReturn.Title)
 	t.Log(">> Created issue body:", issueReturn.Body)
 	t.Log(">> Created issue label:", (*issueReturn.Labels)[0].Name)

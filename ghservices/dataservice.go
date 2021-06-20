@@ -45,17 +45,6 @@ func TransformIssue(buf string) Payload {
 	return payload
 }
 
-type IssueShort struct {
-	Title  string   `json:"title"`
-	Body   string   `json:"body"`
-	Labels []string `json:"labels"`
-}
-
-type UpdateIssue struct {
-	Labels    []string `json:"labels"`
-	Milestone int      `json:"milestone"`
-}
-
 func getWeekdayInLoc(dt string, region string) string {
 	tm, _ := time.Parse(time.RFC3339, dt) // Eg. "2021-06-08T01:37:41Z"
 	loc, _ := time.LoadLocation(region)   // Eg. "America/New_York"

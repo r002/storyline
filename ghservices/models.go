@@ -2,6 +2,17 @@ package ghservices
 
 import "time"
 
+type IssueShort struct {
+	Title  string   `json:"title"`
+	Body   string   `json:"body"`
+	Labels []string `json:"labels"`
+}
+
+type UpdateIssue struct {
+	Labels    []string `json:"labels"`
+	Milestone int      `json:"milestone"`
+}
+
 type Payload struct {
 	Id      int       `json:"id" firestore:"id"`
 	Action  string    `json:"action" firestore:"action"`
