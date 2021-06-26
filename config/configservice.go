@@ -32,7 +32,7 @@ func GetEnvVars() EnvVars {
 			log.Println(">> Loading config from: os.Args[1]")
 			loadConfigFromFile(os.Args[1])
 		} else {
-			_, ok := os.LookupEnv("STUDYDASH_ENV")
+			_, ok := os.LookupEnv("STUDYDASH_ENV") // GCP will have these env vars set
 			if ok {
 				log.Println(">> Loading config from: env vars")
 				config = new(Config)
@@ -42,7 +42,7 @@ func GetEnvVars() EnvVars {
 				(*config).EnvVars.GhRepoEndpoint = os.Getenv("STUDYDASH_GH_REPO_ENDPOINT")
 				(*config).EnvVars.FirestoreEndpoint = os.Getenv("STUDYDASH_FIRESTORE_ENDPOINT")
 			} else {
-				log.Println(">> Loading config from: STUDYDASH_CONFIG")
+				log.Println(">> Loading config from: STUDYDASH_CONFIG") // Local has this env var set
 				loadConfigFromFile(os.Getenv("STUDYDASH_CONFIG"))
 			}
 		}

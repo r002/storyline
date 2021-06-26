@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/r002/storyline-api/ghservices"
+	"github.com/r002/storyline-api/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -65,6 +66,27 @@ func CreateDoc(collection string, doc string, payload map[string]interface{}) er
 		log.Fatalf("Failed adding to %s/%s: %v", collection, doc, err)
 	}
 	return err
+}
+
+func AddMember(collection string, doc string, member models.Member) error {
+	client = getClient()
+	// defer client.Close()
+	_, err := client.Collection(collection).Doc(doc).Set(ctx, member)
+	// fmt.Printf(">> rs: %v", rs) // Output: &{2021-06-17 12:13:20.465879 +0000 UTC}
+
+	if err != nil {
+		log.Fatalf("Failed adding to %s/%s: %v", collection, doc, err)
+	}
+	return err
+}
+
+func GetMember(userHandle string) models.Member {
+	client = getClient()
+	// defer client.Close()
+	dsnap, _ := client.Collection("testing").Doc(userHandle).Get(ctx)
+	var m models.Member
+	dsnap.DataTo(&m)
+	return m
 }
 
 func ReadDoc(collection string, doc string) map[string]interface{} {

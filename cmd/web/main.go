@@ -132,15 +132,15 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().KeyGhToken,
 		config.GetEnvVars().GhRepoEndpoint,
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.1",
-		"Sat - June 19, 2021",
+		"0.0.2",
+		"Sat - June 26, 2021",
 	)
 	w.Write([]byte(s))
 }
 
 // Get all cards
 func handleCards(w http.ResponseWriter) {
-	cards := ghservices.GetCards()
+	cards := ghservices.GetCards("r002")
 	b, err := json.MarshalIndent(cards, "", "  ")
 	if err != nil {
 		fmt.Println("error:", err)

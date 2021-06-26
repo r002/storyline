@@ -111,7 +111,7 @@ func TestUpdateCard(t *testing.T) {
 }
 
 func TestGetCards(t *testing.T) {
-	cards := GetCards()
+	cards := GetCards("r002")
 	b, err := json.MarshalIndent(cards, "", "  ")
 	if err != nil {
 		fmt.Println("error:", err)
