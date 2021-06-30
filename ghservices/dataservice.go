@@ -154,11 +154,7 @@ func GetCards(userHandle string) []Card {
 	var cards []Card
 	json.Unmarshal(body, &cards)
 
-	fmt.Println(">> len(cards):", len(cards))
-	// fmt.Println(">> cards0 Title:", cards[0].Title)
-	// fmt.Println(">> cards0 UserHandle:", cards[0].User.Login)
-	// fmt.Println(">> cards1 title", cards[1].Title)
-	// fmt.Println(">> cards2 title", cards[2].Title)
+	// fmt.Println(">> len(cards):", len(cards))
 
 	return cards
 }

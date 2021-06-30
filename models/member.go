@@ -25,6 +25,7 @@ func (m *Member) BuildMember() {
 	m.buildRecord()
 	m.RecordCount = len(m.Record)
 	m.calcStreakCurrent()
+	m.calcMaxStreak()
 }
 
 // Read all of the member's cards by GitHub REST API and build their record
@@ -40,24 +41,52 @@ func (m *Member) buildRecord() {
 	m.Record = record
 }
 
+func (m *Member) calcMaxStreak() {
+	maxStreak, streak := 0, 0
+	dateCursor := time.Now()
+
+	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
+	startSeconds := startDate.Unix()
+
+	for dateCursor.Unix() >= startSeconds {
+		key := dateCursor.Format("2006-01-02")
+		if _, ok := m.Record[key]; ok {
+			streak++
+			fmt.Printf(">> key: %v; streak: %v\n", key, streak)
+		} else {
+			fmt.Printf(">> Streak broken on: %q; Streak: %v\n", key, streak)
+			if streak > maxStreak {
+				maxStreak = streak
+				fmt.Printf("\t>> New MaxStreak: %v\n", maxStreak)
+			}
+			streak = 0
+		}
+		dateCursor = dateCursor.Add(-24 * time.Hour)
+	}
+	if streak > maxStreak { // This only happens if member has missed zero days
+		maxStreak = streak
+		fmt.Printf(">> Study member has never missed a day! MaxStreak: %v\n", maxStreak)
+	}
+	m.StreakMax = maxStreak
+}
+
 func (m *Member) calcStreakCurrent() {
 	streak := 0
 	dateCursor := time.Now()
-	key := dateCursor.Format("2006-01-02")
-	if _, ok := m.Record[key]; ok {
-		streak = 1
-	}
 
-	for range m.Record {
-		dateCursor = dateCursor.Add(-24 * time.Hour)
-		key = dateCursor.Format("2006-01-02")
-		fmt.Println(">> key:", key)
+	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
+	startSeconds := startDate.Unix()
+
+	for dateCursor.Unix() >= startSeconds {
+		key := dateCursor.Format("2006-01-02")
 		if _, ok := m.Record[key]; ok {
 			streak++
+			// fmt.Printf(">> key: %v; streak: %v\n", key, streak)
 		} else {
-			fmt.Printf(">> Streak broken on: %q; Streak: %v", key, streak)
+			// fmt.Printf(">> Streak broken on: %q; Streak: %v", key, streak)
 			break
 		}
+		dateCursor = dateCursor.Add(-24 * time.Hour)
 	}
 	m.StreakCurrent = streak
 }
