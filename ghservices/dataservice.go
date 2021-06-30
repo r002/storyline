@@ -60,12 +60,10 @@ func getYearMonthInLoc(dt string, region string) string {
 // This function updates the card with the "Daily Accomplishment" milestone
 // and also labels the card with the day it was created. Eg. "monday"
 func UpdateCard(ghToken []byte, issue Issue) Issue {
-	// TODO: Generate the label for YYYY-MM (eg. 2021-06)
-
 	url := GH_REPO_ENDPOINT + "/issues/" + fmt.Sprint(issue.Number)
 	bearer := "token " + string(ghToken)
 	weekday := getWeekdayInLoc(issue.Created, "America/New_York")     // HACK: Assumes all users are ET. TODO: Fix later. 6/8/21
-	yearMonth := getYearMonthInLoc(issue.Created, "America/New_York") // HACK: Assumes all users are ET. TODO: Fix later. 6/8/21
+	yearMonth := getYearMonthInLoc(issue.Created, "America/New_York") // HACK: Assumes all users are ET. TODO: Fix later. 6/30/21
 	updateIssue := &UpdateIssue{
 		Labels:    []string{strings.ToLower(weekday), yearMonth},
 		Milestone: 1, // Set the "Daily Accomplishment" milestone here
