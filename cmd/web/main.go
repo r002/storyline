@@ -132,8 +132,8 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().KeyGhToken,
 		config.GetEnvVars().GhRepoEndpoint,
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.2",
-		"Sat - June 26, 2021",
+		"0.0.3",
+		"Wed - June 30, 2021",
 	)
 	w.Write([]byte(s))
 }
@@ -190,7 +190,8 @@ func handlePayload(w http.ResponseWriter, r *http.Request) {
 	payload := ghservices.TransformIssue(buf.String())
 
 	// Set all newly "opened" cards that have a Label="daily accomplishment" to Milestone="Daily Accomplishment"
-	// Change the Label from "daily accomplishment" to "da"
+	// Add the day-of-the-week label (eg. `monday`, `tuesday`, etc)
+	// Add label, YYYY-MM (eg. `2021-06`, etc)
 	if payload.Action == "opened" {
 		for _, label := range *payload.Issue.Labels {
 			// fmt.Println(">> Label:", label.Name)

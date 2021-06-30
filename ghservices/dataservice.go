@@ -51,15 +51,24 @@ func getWeekdayInLoc(dt string, region string) string {
 	return fmt.Sprint(tm.In(loc).Weekday())
 }
 
+func getYearMonthInLoc(dt string, region string) string {
+	tm, _ := time.Parse(time.RFC3339, dt)           // Eg. "2021-06-08T01:37:41Z"
+	loc, _ := time.LoadLocation(region)             // Eg. "America/New_York"
+	return fmt.Sprint(tm.In(loc).Format("2006-01")) // Eg. YYYY-MM
+}
+
 // This function updates the card with the "Daily Accomplishment" milestone
-// and also labels the card with the day it was created. Eg. "Monday"
+// and also labels the card with the day it was created. Eg. "monday"
 func UpdateCard(ghToken []byte, issue Issue) Issue {
+	// TODO: Generate the label for YYYY-MM (eg. 2021-06)
+
 	url := GH_REPO_ENDPOINT + "/issues/" + fmt.Sprint(issue.Number)
 	bearer := "token " + string(ghToken)
-	weekday := getWeekdayInLoc(issue.Created, "America/New_York") // HACK: Assumes all users are ET. TODO: Fix later. 6/8/21
+	weekday := getWeekdayInLoc(issue.Created, "America/New_York")     // HACK: Assumes all users are ET. TODO: Fix later. 6/8/21
+	yearMonth := getYearMonthInLoc(issue.Created, "America/New_York") // HACK: Assumes all users are ET. TODO: Fix later. 6/8/21
 	updateIssue := &UpdateIssue{
-		Labels:    []string{strings.ToLower(weekday)},
-		Milestone: 1,
+		Labels:    []string{strings.ToLower(weekday), yearMonth},
+		Milestone: 1, // Set the "Daily Accomplishment" milestone here
 	}
 	postBody, _ := json.Marshal(updateIssue)
 	responseBody := bytes.NewBuffer(postBody)
