@@ -52,12 +52,12 @@ func (m *Member) calcMaxStreak() {
 		key := dateCursor.Format("2006-01-02")
 		if _, ok := m.Record[key]; ok {
 			streak++
-			fmt.Printf(">> key: %v; streak: %v\n", key, streak)
+			// fmt.Printf(">> key: %v; streak: %v\n", key, streak)
 		} else {
-			fmt.Printf(">> Streak broken on: %q; Streak: %v\n", key, streak)
+			// fmt.Printf(">> Streak broken on: %q; Streak: %v\n", key, streak)
 			if streak > maxStreak {
 				maxStreak = streak
-				fmt.Printf("\t>> New MaxStreak: %v\n", maxStreak)
+				// fmt.Printf("\t>> New MaxStreak: %v\n", maxStreak)
 			}
 			streak = 0
 		}
@@ -81,10 +81,13 @@ func (m *Member) calcStreakCurrent() {
 		key := dateCursor.Format("2006-01-02")
 		if _, ok := m.Record[key]; ok {
 			streak++
-			// fmt.Printf(">> key: %v; streak: %v\n", key, streak)
+			fmt.Printf(">> key: %v; streakCurrent: %v\n", key, streak)
 		} else {
-			// fmt.Printf(">> Streak broken on: %q; Streak: %v", key, streak)
-			break
+			// Do not break streakCurrent if member hasn't yet submitted a card today
+			if key != time.Now().Format("2006-01-02") {
+				fmt.Printf(">> streakCurrent broken on: %q; streakCurrent: %v\n", key, streak)
+				break
+			}
 		}
 		dateCursor = dateCursor.Add(-24 * time.Hour)
 	}

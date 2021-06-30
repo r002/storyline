@@ -15,20 +15,20 @@ import (
 var m models.Member
 
 func main() {
-	// m = models.Member{
-	// 	Fullname:      "Robert Lin",
-	// 	Handle:        "r002",
-	// 	StartDate:     "2021-05-03T04:00:00Z",
-	// 	Uid:           45280066,
-	// 	Repo:          "https://github.com/studydash/cards",
-	// 	Active:        true,
-	// 	StreakCurrent: -1,
-	// 	StreakMax:     -1,
-	// 	RecordCount:   -1,
-	// 	Record:        nil,
-	// }
-	// m.BuildMember()
-	// fbservices.AddMember("testing", m.Handle, m)
+	m = models.Member{
+		Fullname:      "Robert Lin",
+		Handle:        "r002",
+		StartDate:     "2021-05-03T04:00:00Z",
+		Uid:           45280066,
+		Repo:          "https://github.com/studydash/cards",
+		Active:        true,
+		StreakCurrent: -1,
+		StreakMax:     -1,
+		RecordCount:   -1,
+		Record:        nil,
+	}
+	m.BuildMember()
+	fbservices.AddMember("members", m.Handle, m)
 
 	m = models.Member{
 		Fullname:      "Anita Beauchamp",
@@ -43,20 +43,20 @@ func main() {
 		Record:        nil,
 	}
 	m.BuildMember()
-	fbservices.AddMember("testing", m.Handle, m)
+	fbservices.AddMember("members", m.Handle, m)
 
-	// m = models.Member{
-	// 	Fullname:      "Shaza Huang",
-	// 	Handle:        "shazahuang",
-	// 	StartDate:     "2021-06-18T04:00:00Z",
-	// 	Uid:           85973779,
-	// 	Repo:          "https://github.com/studydash/cards",
-	// 	Active:        true,
-	// 	StreakCurrent: -1,
-	// 	StreakMax:     -1,
-	// 	RecordCount:   -1,
-	// 	Record:        nil,
-	// }
-	// m.BuildMember()
-	// fbservices.AddMember("testing", m.Handle, m)
+	m = models.Member{
+		Fullname:      "Shaza Huang",
+		Handle:        "shazahuang",
+		StartDate:     "2021-06-18T04:00:00Z",
+		Uid:           85973779,
+		Repo:          "https://github.com/studydash/cards",
+		Active:        true,
+		StreakCurrent: -1,
+		StreakMax:     -1,
+		RecordCount:   -1,
+		Record:        nil,
+	}
+	m.BuildMember()
+	fbservices.AddMember("members", m.Handle, m)
 }
