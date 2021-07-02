@@ -16,47 +16,46 @@ var m models.Member
 
 func main() {
 	m = models.Member{
-		Fullname:      "Robert Lin",
-		Handle:        "r002",
-		StartDate:     "2021-05-03T04:00:00Z",
-		Uid:           45280066,
-		Repo:          "https://github.com/studydash/cards",
-		Active:        true,
-		StreakCurrent: -1,
-		StreakMax:     -1,
-		RecordCount:   -1,
-		Record:        nil,
+		Fullname:  "Robert Lin",
+		Handle:    "r002",
+		StartDate: "2021-05-03T04:00:00Z",
+		Uid:       45280066,
+		Repo:      "https://github.com/studydash/cards",
+		Active:    true,
 	}
 	m.BuildMember()
-	fbservices.AddMember("members", m.Handle, m)
+	fbservices.AddMember("studyMembers", m.Handle, m)
 
 	m = models.Member{
-		Fullname:      "Anita Beauchamp",
-		Handle:        "anitabe404",
-		StartDate:     "2021-05-04T04:00:00Z",
-		Uid:           9167395,
-		Repo:          "https://github.com/studydash/cards",
-		Active:        true,
-		StreakCurrent: -1,
-		StreakMax:     -1,
-		RecordCount:   -1,
-		Record:        nil,
+		Fullname:  "Anita Beauchamp",
+		Handle:    "anitabe404",
+		StartDate: "2021-05-04T04:00:00Z",
+		Uid:       9167395,
+		Repo:      "https://github.com/studydash/cards",
+		Active:    true,
 	}
 	m.BuildMember()
-	fbservices.AddMember("members", m.Handle, m)
+	fbservices.AddMember("studyMembers", m.Handle, m)
 
 	m = models.Member{
-		Fullname:      "Shaza Huang",
-		Handle:        "shazahuang",
-		StartDate:     "2021-06-18T04:00:00Z",
-		Uid:           85973779,
-		Repo:          "https://github.com/studydash/cards",
-		Active:        true,
-		StreakCurrent: -1,
-		StreakMax:     -1,
-		RecordCount:   -1,
-		Record:        nil,
+		Fullname:  "Matthew Curcio",
+		Handle:    "mccurcio",
+		StartDate: "2021-05-10T04:00:00Z",
+		Uid:       1915749,
+		Repo:      "https://github.com/studydash/cards",
+		Active:    false,
 	}
 	m.BuildMember()
-	fbservices.AddMember("members", m.Handle, m)
+	fbservices.AddMember("studyMembers", m.Handle, m)
+
+	m = models.Member{
+		Fullname:  "Shaza Huang",
+		Handle:    "shazahuang",
+		StartDate: "2021-06-18T04:00:00Z",
+		Uid:       85973779,
+		Repo:      "https://github.com/studydash/cards",
+		Active:    true,
+	}
+	m.BuildMember()
+	fbservices.AddMember("studyMembers", m.Handle, m)
 }

@@ -2,10 +2,17 @@ package models
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/r002/storyline-api/ghservices"
 )
+
+type Streak struct {
+	StartDate string
+	EndDate   string
+	Days      int
+}
 
 type Member struct {
 	Fullname      string
@@ -14,11 +21,13 @@ type Member struct {
 	Uid           int
 	Repo          string
 	Active        bool
-	StreakCurrent int
-	StreakMax     int // TODO
+	StreakCurrent Streak
+	StreakMax     Streak
 	RecordCount   int
 	Record        map[string]interface{}
-	Updated       time.Time `firestore:"Updated,serverTimestamp"`
+	DaysJoined    int
+	// LastEntry     string    // Date of most recent entry
+	Updated time.Time `firestore:"Updated,serverTimestamp"`
 }
 
 func (m *Member) BuildMember() {
@@ -26,6 +35,8 @@ func (m *Member) BuildMember() {
 	m.RecordCount = len(m.Record)
 	m.calcStreakCurrent()
 	m.calcMaxStreak()
+	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
+	m.DaysJoined = int(math.Ceil(time.Since(startDate).Hours() / 24))
 }
 
 // Read all of the member's cards by GitHub REST API and build their record
@@ -42,8 +53,8 @@ func (m *Member) buildRecord() {
 }
 
 func (m *Member) calcMaxStreak() {
-	maxStreak, streak := 0, 0
 	dateCursor := time.Now()
+	streak := Streak{}
 
 	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
 	startSeconds := startDate.Unix()
@@ -51,37 +62,47 @@ func (m *Member) calcMaxStreak() {
 	for dateCursor.Unix() >= startSeconds {
 		key := dateCursor.Format("2006-01-02")
 		if _, ok := m.Record[key]; ok {
-			streak++
+			// If this is the beginning of a new streak, track the date
+			if streak.Days == 0 {
+				streak.EndDate = key
+			}
+			streak.Days++
 			// fmt.Printf(">> key: %v; streak: %v\n", key, streak)
 		} else {
-			// fmt.Printf(">> Streak broken on: %q; Streak: %v\n", key, streak)
-			if streak > maxStreak {
-				maxStreak = streak
-				// fmt.Printf("\t>> New MaxStreak: %v\n", maxStreak)
+			fmt.Printf(">> Streak broken on: %q; Streak: %v\n", key, streak)
+			streak.StartDate = dateCursor.Add(24 * time.Hour).Format("2006-01-02")
+			if streak.Days > m.StreakMax.Days {
+				m.StreakMax = streak
+				fmt.Printf("\t>> New MaxStreak: %v\n", streak)
 			}
-			streak = 0
+			// Reset the streak
+			streak = Streak{}
 		}
+		streak.StartDate = key
 		dateCursor = dateCursor.Add(-24 * time.Hour)
 	}
-	if streak > maxStreak { // This only happens if member has missed zero days
-		maxStreak = streak
-		fmt.Printf(">> Study member has never missed a day! MaxStreak: %v\n", maxStreak)
+	if streak.Days > m.StreakMax.Days { // This only happens if member has missed zero days
+		m.StreakMax = streak
+		fmt.Printf(">> Study member has never missed a day! MaxStreak: %v\n", m.StreakMax)
 	}
-	m.StreakMax = maxStreak
 }
 
 func (m *Member) calcStreakCurrent() {
-	streak := 0
 	dateCursor := time.Now()
+	streak := Streak{}
 
 	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
 	startSeconds := startDate.Unix()
 
 	for dateCursor.Unix() >= startSeconds {
 		key := dateCursor.Format("2006-01-02")
-		if _, ok := m.Record[key]; ok {
-			streak++
-			fmt.Printf(">> key: %v; streakCurrent: %v\n", key, streak)
+		if cardNo, ok := m.Record[key]; ok {
+			// If this is the beginning of a new streak, track the date
+			if streak.Days == 0 {
+				streak.EndDate = key
+			}
+			streak.Days++
+			fmt.Printf(">> kv: %v | %v; streakCurrent: %v\n", key, cardNo, streak)
 		} else {
 			// Do not break streakCurrent if member hasn't yet submitted a card today
 			if key != time.Now().Format("2006-01-02") {
@@ -89,6 +110,7 @@ func (m *Member) calcStreakCurrent() {
 				break
 			}
 		}
+		streak.StartDate = key
 		dateCursor = dateCursor.Add(-24 * time.Hour)
 	}
 	m.StreakCurrent = streak

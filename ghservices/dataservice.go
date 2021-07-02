@@ -144,7 +144,8 @@ func CreateCard(ghToken []byte, issue *IssueShort) Issue {
 }
 
 func GetCards(userHandle string) []Card {
-	uri := GH_REPO_ENDPOINT + "/issues?milestone=1&sort=created&direction=desc&per_page=100&creator=" + userHandle
+	uri := GH_REPO_ENDPOINT + "/issues?milestone=1&sort=created&direction=desc&per_page=100&state=all&creator=" + userHandle // Includes closed cards
+	// uri := GH_REPO_ENDPOINT + "/issues?milestone=1&sort=created&direction=desc&per_page=100&creator=" + userHandle
 	resp, err := http.Get(uri)
 	if err != nil {
 		log.Fatalln(err)

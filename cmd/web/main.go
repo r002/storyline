@@ -124,6 +124,7 @@ func handleInfo(w http.ResponseWriter) {
 				<div class="box">FirestoreEndpoint</div>	<div class="box">%[5]s</div>
 				<div class="box">Version</div>						<div class="box">%[6]s</div>
 				<div class="box">Last built</div>					<div class="box">%[7]s</div>
+				<div class="box">Notes</div>							<div class="box">%[8]s</div>
 			</div>
 		</body>
 		</html>`,
@@ -132,8 +133,11 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().KeyGhToken,
 		config.GetEnvVars().GhRepoEndpoint,
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.3",
-		"Wed - June 30, 2021",
+		"0.0.4",
+		"Thu - July 1, 2021",
+		"This server build adds the 'DaysJoined' field to the 'member' model. "+
+			"Shows how many days have passed since member's start date. "+
+			"Add `StreakBegin`, `StreakEnd`, `StreakLength` to all streaks.",
 	)
 	w.Write([]byte(s))
 }
@@ -197,6 +201,9 @@ func handlePayload(w http.ResponseWriter, r *http.Request) {
 			// fmt.Println(">> Label:", label.Name)
 			if label.Name == "daily accomplishment" {
 				ghservices.UpdateCard(ghToken, payload.Issue)
+
+				// TODO: Increment the member's streak - 6/30/21
+
 				w.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'."))
 				os.Stdout.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'.\n"))
 				return

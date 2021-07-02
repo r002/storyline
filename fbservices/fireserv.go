@@ -68,6 +68,13 @@ func CreateDoc(collection string, doc string, payload map[string]interface{}) er
 	return err
 }
 
+// TODO - 7/1/21
+// Call this function from `Go Server` every time a study member submits a card
+// to update the member's stats in Firestore which the GUI will then reflect in real-time
+func IncrementMemberStreak() {
+
+}
+
 func AddMember(collection string, doc string, member models.Member) error {
 	client = getClient()
 	// defer client.Close()
