@@ -198,12 +198,9 @@ func handlePayload(w http.ResponseWriter, r *http.Request) {
 	// Add label, YYYY-MM (eg. `2021-06`, etc)
 	if payload.Action == "opened" {
 		for _, label := range *payload.Issue.Labels {
-			// fmt.Println(">> Label:", label.Name)
 			if label.Name == "daily accomplishment" {
 				ghservices.UpdateCard(ghToken, payload.Issue)
-
-				// TODO: Increment the member's streak - 6/30/21
-
+				fbservices.IncrementMemberStreak(payload.Issue)
 				w.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'."))
 				os.Stdout.Write([]byte(">> New issue opened & milestoned as 'Daily Accomplishment'.\n"))
 				return
