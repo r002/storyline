@@ -57,7 +57,8 @@ func (m *Member) CalcDaysJoined() {
 }
 
 func (m *Member) CalcMaxStreak() {
-	dateCursor := time.Now()
+	loc, _ := time.LoadLocation("America/New_York")
+	dateCursor := time.Now().In(loc)
 	streak := Streak{}
 
 	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
@@ -92,7 +93,8 @@ func (m *Member) CalcMaxStreak() {
 }
 
 func (m *Member) CalcStreakCurrent() {
-	dateCursor := time.Now()
+	loc, _ := time.LoadLocation("America/New_York")
+	dateCursor := time.Now().In(loc)
 	streak := Streak{}
 
 	startDate, _ := time.Parse(time.RFC3339, m.StartDate)

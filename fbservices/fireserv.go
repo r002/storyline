@@ -21,7 +21,8 @@ var ctx context.Context
 func getClient() *firestore.Client {
 	if client == nil {
 		log.Println(">> Creating a new client!")
-		projectID := "r002-cloud"
+		// projectID := "r002-cloud"
+		projectID := "studydash-qa"
 		ctx = context.Background()
 		c, err := firestore.NewClient(ctx, projectID)
 		if err != nil {

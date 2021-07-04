@@ -121,10 +121,11 @@ func handleInfo(w http.ResponseWriter) {
 				<div class="box">KeyGhWebhook</div>				<div class="box">%[2]s</div>
 				<div class="box">KeyGhToken</div>					<div class="box">%[3]s</div>
 				<div class="box">GhRepoEndpoint</div> 		<div class="box">%[4]s</div>
-				<div class="box">FirestoreEndpoint</div>	<div class="box">%[5]s</div>
-				<div class="box">Version</div>						<div class="box">%[6]s</div>
-				<div class="box">Last built</div>					<div class="box">%[7]s</div>
-				<div class="box">Notes</div>							<div class="box">%[8]s</div>
+				<div class="box">GCP Project</div>				<div class="box">%[5]s</div>
+				<div class="box">FirestoreEndpoint</div>	<div class="box">%[6]s</div>
+				<div class="box">Version</div>						<div class="box">%[7]s</div>
+				<div class="box">Last built</div>					<div class="box">%[8]s</div>
+				<div class="box">Notes</div>							<div class="box">%[9]s</div>
 			</div>
 		</body>
 		</html>`,
@@ -132,10 +133,11 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().KeyGhWebhook,
 		config.GetEnvVars().KeyGhToken,
 		config.GetEnvVars().GhRepoEndpoint,
+		"studydash-qa",
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.5",
+		"0.0.6",
 		"Sat - July 3, 2021",
-		"Records, RecordCount, and Streaks are now calculated on every card insertion.",
+		"Fix bug: Records, RecordCount, and Streaks are now calculated on every new card insertion.",
 	)
 	w.Write([]byte(s))
 }
