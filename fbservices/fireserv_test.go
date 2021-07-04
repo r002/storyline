@@ -88,12 +88,12 @@ func TestIncrementMemberStreak(t *testing.T) {
 		Id:    45280066,
 	}
 	mockIssue := ghservices.Issue{
-		Number:    167,
-		Title:     "Submit GitHub `Issues` Feedback to azenMatt",
-		Id:        936163216,
+		Number:    41,
+		Title:     "Dummy Title",
+		Id:        123123123,
 		Body:      "Dummy Body",
-		Created:   "2021-07-03T03:55:43Z",
-		Updated:   "2021-07-03T03:55:45Z",
+		Created:   "2021-07-04T04:20:43Z",
+		Updated:   "2021-07-04T03:20:45Z",
 		Comments:  0,
 		User:      mockUser,
 		Labels:    nil,

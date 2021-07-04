@@ -135,9 +135,9 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().GhRepoEndpoint,
 		"studydash-qa",
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.6",
-		"Sat - July 3, 2021",
-		"Fix bug: Records, RecordCount, and Streaks are now calculated on every new card insertion.",
+		"0.0.7",
+		"Sun - July 4, 2021",
+		"🐞 Fix bug: Update the 'Updated' field for StudyMembers every time their streaks are recalculated.",
 	)
 	w.Write([]byte(s))
 }

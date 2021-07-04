@@ -26,8 +26,8 @@ type Member struct {
 	RecordCount   int
 	Record        map[string]interface{}
 	DaysJoined    int
+	Updated       time.Time
 	// LastEntry     string    // Date of most recent entry
-	Updated time.Time `firestore:"Updated,serverTimestamp"`
 }
 
 func (m *Member) BuildMember() {
@@ -35,6 +35,7 @@ func (m *Member) BuildMember() {
 	m.CalcStreakCurrent()
 	m.CalcMaxStreak()
 	m.CalcDaysJoined()
+	m.Updated = time.Now()
 }
 
 // Read all of the member's cards by GitHub REST API and build their record

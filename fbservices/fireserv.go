@@ -21,8 +21,8 @@ var ctx context.Context
 func getClient() *firestore.Client {
 	if client == nil {
 		log.Println(">> Creating a new client!")
-		// projectID := "r002-cloud"
-		projectID := "studydash-qa"
+		// projectID := "r002-cloud" // TODO: Drive this from config later. 7/4/21
+		projectID := "studydash-qa" // TODO: Drive this from config later. 7/4/21
 		ctx = context.Background()
 		c, err := firestore.NewClient(ctx, projectID)
 		if err != nil {
@@ -83,9 +83,10 @@ func IncrementMemberStreak(issue ghservices.Issue) {
 		m.CalcStreakCurrent()
 		m.CalcMaxStreak()
 		m.CalcDaysJoined()
+		m.Updated = time.Now()
 
 		AddMember("studyMembers", m.Handle, m)
-		log.Println(">> Member updated", handle)
+		// log.Println(">> Member updated", m)
 	} else {
 		log.Panicln(">> Member not updated; card for date already exists", handle)
 	}
