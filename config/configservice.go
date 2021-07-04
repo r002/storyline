@@ -20,6 +20,7 @@ type EnvVars struct {
 	KeyGhWebhook      string `yaml:"STUDYDASH_KEY_GH_WEBHOOK"`
 	KeyGhToken        string `yaml:"STUDYDASH_KEY_GH_TOKEN"`
 	GhRepoEndpoint    string `yaml:"STUDYDASH_GH_REPO_ENDPOINT"`
+	GcpProject        string `yaml:"STUDYDASH_GCP_PROJECT"`
 	FirestoreEndpoint string `yaml:"STUDYDASH_FIRESTORE_ENDPOINT"`
 }
 
@@ -40,6 +41,7 @@ func GetEnvVars() EnvVars {
 				(*config).EnvVars.KeyGhWebhook = os.Getenv("STUDYDASH_KEY_GH_WEBHOOK")
 				(*config).EnvVars.KeyGhToken = os.Getenv("STUDYDASH_KEY_GH_TOKEN")
 				(*config).EnvVars.GhRepoEndpoint = os.Getenv("STUDYDASH_GH_REPO_ENDPOINT")
+				(*config).EnvVars.GcpProject = os.Getenv("STUDYDASH_GCP_PROJECT")
 				(*config).EnvVars.FirestoreEndpoint = os.Getenv("STUDYDASH_FIRESTORE_ENDPOINT")
 			} else {
 				log.Println(">> Loading config from: STUDYDASH_CONFIG") // Local has this env var set

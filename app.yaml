@@ -5,4 +5,5 @@ env_variables:
   STUDYDASH_KEY_GH_WEBHOOK: "prod-gh-webhook"
   STUDYDASH_KEY_GH_TOKEN: "gh-studygroup-bot-tok"
   STUDYDASH_GH_REPO_ENDPOINT: "https://api.github.com/repos/studydash/cards"
+  STUDYDASH_GCP_PROJECT: "r002-cloud"
   STUDYDASH_FIRESTORE_ENDPOINT: "ghUpdates"

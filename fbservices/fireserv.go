@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/r002/storyline-api/config"
 	"github.com/r002/storyline-api/ghservices"
 	"github.com/r002/storyline-api/models"
 	"google.golang.org/grpc/codes"
@@ -17,14 +18,19 @@ import (
 
 var client *firestore.Client
 var ctx context.Context
+var GCP_PROJECT string
+
+func init() {
+	GCP_PROJECT = config.GetEnvVars().GcpProject
+
+	log.Println(">> GCP_PROJECT:", GCP_PROJECT)
+}
 
 func getClient() *firestore.Client {
 	if client == nil {
 		log.Println(">> Creating a new client!")
-		// projectID := "r002-cloud" // TODO: Drive this from config later. 7/4/21
-		projectID := "studydash-qa" // TODO: Drive this from config later. 7/4/21
 		ctx = context.Background()
-		c, err := firestore.NewClient(ctx, projectID)
+		c, err := firestore.NewClient(ctx, GCP_PROJECT)
 		if err != nil {
 			log.Fatalf("Failed to create client: %v", err)
 		}

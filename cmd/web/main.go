@@ -133,11 +133,11 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().KeyGhWebhook,
 		config.GetEnvVars().KeyGhToken,
 		config.GetEnvVars().GhRepoEndpoint,
-		"studydash-qa",
+		config.GetEnvVars().GcpProject,
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.7",
+		"0.0.8",
 		"Sun - July 4, 2021",
-		"🐞 Fix bug: Update the 'Updated' field for StudyMembers every time their streaks are recalculated.",
+		"🔧 `GCP_PROJECT` now driven by config.",
 	)
 	w.Write([]byte(s))
 }
