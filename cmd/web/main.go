@@ -133,11 +133,9 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().KeyGhToken,
 		config.GetEnvVars().GhRepoEndpoint,
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.4",
-		"Thu - July 1, 2021",
-		"This server build adds the 'DaysJoined' field to the 'member' model. "+
-			"Shows how many days have passed since member's start date. "+
-			"Add `StreakBegin`, `StreakEnd`, `StreakLength` to all streaks.",
+		"0.0.5",
+		"Sat - July 3, 2021",
+		"Records, RecordCount, and Streaks are now calculated on every card insertion.",
 	)
 	w.Write([]byte(s))
 }

@@ -68,11 +68,26 @@ func CreateDoc(collection string, doc string, payload map[string]interface{}) er
 	return err
 }
 
-// TODO - 7/1/21
-// Call this function from `Go Server` every time a study member submits a card
-// to update the member's stats in Firestore which the GUI will then reflect in real-time
 func IncrementMemberStreak(issue ghservices.Issue) {
+	// Read the member from Firestore to see if the member has yet contributed a card for today.
+	handle := issue.User.Login
+	m := GetMember(handle)
+	loc, _ := time.LoadLocation("America/New_York")
+	t, _ := time.Parse(time.RFC3339, issue.Created)
+	date := t.In(loc).Format("2006-01-02")
 
+	if _, ok := m.Record[date]; !ok {
+		m.Record[date] = issue.Number
+		m.RecordCount = len(m.Record)
+		m.CalcStreakCurrent()
+		m.CalcMaxStreak()
+		m.CalcDaysJoined()
+
+		AddMember("studyMembers", m.Handle, m)
+		log.Println(">> Member updated", handle)
+	} else {
+		log.Panicln(">> Member not updated; card for date already exists", handle)
+	}
 }
 
 func AddMember(collection string, doc string, member models.Member) error {
@@ -90,7 +105,7 @@ func AddMember(collection string, doc string, member models.Member) error {
 func GetMember(userHandle string) models.Member {
 	client = getClient()
 	// defer client.Close()
-	dsnap, _ := client.Collection("testing").Doc(userHandle).Get(ctx)
+	dsnap, _ := client.Collection("studyMembers").Doc(userHandle).Get(ctx)
 	var m models.Member
 	dsnap.DataTo(&m)
 	return m

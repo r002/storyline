@@ -82,6 +82,26 @@ func TestSendPayload(t *testing.T) {
 	}
 }
 
+func TestIncrementMemberStreak(t *testing.T) {
+	mockUser := ghservices.User{
+		Login: "r002",
+		Id:    45280066,
+	}
+	mockIssue := ghservices.Issue{
+		Number:    167,
+		Title:     "Submit GitHub `Issues` Feedback to azenMatt",
+		Id:        936163216,
+		Body:      "Dummy Body",
+		Created:   "2021-07-03T03:55:43Z",
+		Updated:   "2021-07-03T03:55:45Z",
+		Comments:  0,
+		User:      mockUser,
+		Labels:    nil,
+		Milestone: nil,
+	}
+	IncrementMemberStreak(mockIssue)
+}
+
 // // Use channels to test this later.
 // func TestListenToDoc(t *testing.T) {
 // 	ListenToDoc("r002-cloud", "ghUpdatesQa", "123")

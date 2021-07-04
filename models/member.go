@@ -32,11 +32,9 @@ type Member struct {
 
 func (m *Member) BuildMember() {
 	m.buildRecord()
-	m.RecordCount = len(m.Record)
-	m.calcStreakCurrent()
-	m.calcMaxStreak()
-	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
-	m.DaysJoined = int(math.Ceil(time.Since(startDate).Hours() / 24))
+	m.CalcStreakCurrent()
+	m.CalcMaxStreak()
+	m.CalcDaysJoined()
 }
 
 // Read all of the member's cards by GitHub REST API and build their record
@@ -50,9 +48,15 @@ func (m *Member) buildRecord() {
 		record[k] = card.Number
 	}
 	m.Record = record
+	m.RecordCount = len(m.Record)
 }
 
-func (m *Member) calcMaxStreak() {
+func (m *Member) CalcDaysJoined() {
+	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
+	m.DaysJoined = int(math.Ceil(time.Since(startDate).Hours() / 24))
+}
+
+func (m *Member) CalcMaxStreak() {
 	dateCursor := time.Now()
 	streak := Streak{}
 
@@ -69,11 +73,11 @@ func (m *Member) calcMaxStreak() {
 			streak.Days++
 			// fmt.Printf(">> key: %v; streak: %v\n", key, streak)
 		} else {
-			fmt.Printf(">> Streak broken on: %q; Streak: %v\n", key, streak)
+			// fmt.Printf(">> Streak broken on: %q; Streak: %v\n", key, streak)
 			streak.StartDate = dateCursor.Add(24 * time.Hour).Format("2006-01-02")
 			if streak.Days > m.StreakMax.Days {
 				m.StreakMax = streak
-				fmt.Printf("\t>> New MaxStreak: %v\n", streak)
+				// fmt.Printf("\t>> New MaxStreak: %v\n", streak)
 			}
 			// Reset the streak
 			streak = Streak{}
@@ -87,7 +91,7 @@ func (m *Member) calcMaxStreak() {
 	}
 }
 
-func (m *Member) calcStreakCurrent() {
+func (m *Member) CalcStreakCurrent() {
 	dateCursor := time.Now()
 	streak := Streak{}
 
@@ -102,11 +106,11 @@ func (m *Member) calcStreakCurrent() {
 				streak.EndDate = key
 			}
 			streak.Days++
-			fmt.Printf(">> kv: %v | %v; streakCurrent: %v\n", key, cardNo, streak)
+			// fmt.Printf(">> kv: %v | %v; streakCurrent: %v\n", key, cardNo, streak)
 		} else {
 			// Do not break streakCurrent if member hasn't yet submitted a card today
 			if key != time.Now().Format("2006-01-02") {
-				fmt.Printf(">> streakCurrent broken on: %q; streakCurrent: %v\n", key, streak)
+				fmt.Printf(">> %v | streakCurrent broken on: %q; streakCurrent: %v\n", cardNo, key, streak)
 				break
 			}
 		}
