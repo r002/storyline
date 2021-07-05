@@ -24,10 +24,7 @@ type PubSubMessage struct {
 
 // Subscribes to topic and performs `member metrics update` on every message received
 func UpdateMemberMetrics(ctx context.Context, m PubSubMessage) error {
-	payload := string(m.Data) // Automatically decoded from base64.
-	if payload == "" {
-		payload = "World"
-	}
+	payload := string(m.Data)
 	log.Printf(">> GCF: UpdateMemberMetrics: payload, %s", payload)
 	s := fbservices.DoNightlyMetricsUpdate()
 	log.Println(">> Job triggered: UpdateMemberMetrics", s)
