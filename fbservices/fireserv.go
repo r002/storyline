@@ -98,6 +98,22 @@ func IncrementMemberStreak(issue ghservices.Issue) {
 	}
 }
 
+func DoNightlyMetricsUpdate() string {
+	members := ReadCollection("studyMembers")
+	for _, dsnap := range members {
+		var m models.Member
+		dsnap.DataTo(&m)
+		m.RecordCount = len(m.Record)
+		m.CalcStreakCurrent()
+		m.CalcMaxStreak()
+		m.CalcDaysJoined()
+		m.Updated = time.Now()
+
+		AddMember("studyMembers", m.Handle, m)
+	}
+	return ">> Finished Job: DoNightlyMetricsUpdate - Run at:" + time.Now().String()
+}
+
 func AddMember(collection string, doc string, member models.Member) error {
 	client = getClient()
 	// defer client.Close()
