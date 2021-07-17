@@ -87,7 +87,7 @@ func IncrementMemberStreak(issue ghservices.Issue) {
 		m.Record[date] = issue.Number
 		m.RecordCount = len(m.Record)
 		m.CalcStreakCurrent()
-		m.CalcMaxStreak()
+		m.CalcMaxStreakAndLastCard()
 		m.CalcDaysJoined()
 		m.Updated = time.Now()
 
@@ -105,7 +105,7 @@ func DoNightlyMetricsUpdate() string {
 		dsnap.DataTo(&m)
 		m.RecordCount = len(m.Record)
 		m.CalcStreakCurrent()
-		m.CalcMaxStreak()
+		m.CalcMaxStreakAndLastCard()
 		m.CalcDaysJoined()
 		m.Updated = time.Now()
 

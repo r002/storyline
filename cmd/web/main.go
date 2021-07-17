@@ -135,9 +135,12 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().GhRepoEndpoint,
 		config.GetEnvVars().GcpProject,
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.8",
-		"Sun - July 4, 2021",
-		"🔧 `GCP_PROJECT` now driven by config.",
+		"0.0.11",
+		"Saturday - July 17, 2021",
+		"✨ If there is no current streak, set streak.EndDate = streak.StartDate. "+
+			"streak.EndDate and streak.StartDate should both never be empty. "+
+			"Don't rely on time.Now() when calculating currentStreak. "+
+			"Add 'LastCard' to `studyMember` model.",
 	)
 	w.Write([]byte(s))
 }

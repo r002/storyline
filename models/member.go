@@ -14,6 +14,11 @@ type Streak struct {
 	Days      int
 }
 
+type Card struct {
+	Date   string
+	Number int
+}
+
 type Member struct {
 	Fullname      string
 	Handle        string
@@ -24,16 +29,16 @@ type Member struct {
 	StreakCurrent Streak
 	StreakMax     Streak
 	RecordCount   int
-	Record        map[string]interface{}
+	Record        map[string]int
 	DaysJoined    int
 	Updated       time.Time
-	// LastEntry     string    // Date of most recent entry
+	LastCard      Card
 }
 
 func (m *Member) BuildMember() {
 	m.buildRecord()
 	m.CalcStreakCurrent()
-	m.CalcMaxStreak()
+	m.CalcMaxStreakAndLastCard()
 	m.CalcDaysJoined()
 	m.Updated = time.Now()
 }
@@ -42,7 +47,7 @@ func (m *Member) BuildMember() {
 func (m *Member) buildRecord() {
 	loc, _ := time.LoadLocation("America/New_York")
 	cards := ghservices.GetCards(m.Handle)
-	record := make(map[string]interface{})
+	record := make(map[string]int)
 	for _, card := range cards {
 		t, _ := time.Parse(time.RFC3339, card.Created)
 		k := t.In(loc).Format("2006-01-02") // Eg. Output: "2021-05-03"
@@ -50,6 +55,11 @@ func (m *Member) buildRecord() {
 	}
 	m.Record = record
 	m.RecordCount = len(m.Record)
+
+	// Set lastCard to be the first card the studyMember ever submitted.
+	// The system assumes that the member's start date *always* has a card submission.
+	// Put another way: Until you properly submit a card, you are not in the system!
+	// A study member's startDate will *always* be the day of their first card submission.
 }
 
 func (m *Member) CalcDaysJoined() {
@@ -57,7 +67,7 @@ func (m *Member) CalcDaysJoined() {
 	m.DaysJoined = int(math.Ceil(time.Since(startDate).Hours() / 24))
 }
 
-func (m *Member) CalcMaxStreak() {
+func (m *Member) CalcMaxStreakAndLastCard() {
 	loc, _ := time.LoadLocation("America/New_York")
 	dateCursor := time.Now().In(loc)
 	streak := Streak{}
@@ -65,9 +75,24 @@ func (m *Member) CalcMaxStreak() {
 	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
 	startSeconds := startDate.Unix()
 
+	// By default, a member's LastCard is always their first card
+	m.LastCard = Card{
+		Date:   startDate.Format("2006-01-02"),
+		Number: 0, // dummy place holder for cardNo
+	}
+
 	for dateCursor.Unix() >= startSeconds {
 		key := dateCursor.Format("2006-01-02")
-		if _, ok := m.Record[key]; ok {
+		if cardNo, ok := m.Record[key]; ok {
+
+			// Set LastCard if it's more recent
+			if key > m.LastCard.Date {
+				m.LastCard = Card{
+					Date:   key,
+					Number: cardNo,
+				}
+			}
+
 			// If this is the beginning of a new streak, track the date
 			if streak.Days == 0 {
 				streak.EndDate = key
@@ -101,9 +126,10 @@ func (m *Member) CalcStreakCurrent() {
 	startDate, _ := time.Parse(time.RFC3339, m.StartDate)
 	startSeconds := startDate.Unix()
 
+	i := 0
 	for dateCursor.Unix() >= startSeconds {
 		key := dateCursor.Format("2006-01-02")
-		if cardNo, ok := m.Record[key]; ok {
+		if _, ok := m.Record[key]; ok {
 			// If this is the beginning of a new streak, track the date
 			if streak.Days == 0 {
 				streak.EndDate = key
@@ -112,13 +138,19 @@ func (m *Member) CalcStreakCurrent() {
 			// fmt.Printf(">> kv: %v | %v; streakCurrent: %v\n", key, cardNo, streak)
 		} else {
 			// Do not break streakCurrent if member hasn't yet submitted a card today
-			if key != time.Now().Format("2006-01-02") {
-				fmt.Printf(">> %v | streakCurrent broken on: %q; streakCurrent: %v\n", cardNo, key, streak)
+			if i != 0 {
+				fmt.Printf(">> %v | streakCurrent broken on: %q; streakCurrent: %v\n", m.Handle, key, streak)
 				break
 			}
 		}
 		streak.StartDate = key
 		dateCursor = dateCursor.Add(-24 * time.Hour)
+		i++
+	}
+	// If there is no current streak, set streak.EndDate = streak.StartDate
+	// streak.EndDate and streak.StartDate should both never be empty
+	if streak.Days == 0 {
+		streak.EndDate = streak.StartDate
 	}
 	m.StreakCurrent = streak
 }
