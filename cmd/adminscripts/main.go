@@ -58,4 +58,15 @@ func main() {
 	}
 	m.BuildMember()
 	fbservices.AddMember("studyMembers", m.Handle, m)
+
+	m = models.Member{
+		Fullname:  "Jassa Deen",
+		Handle:    "JazDee",
+		StartDate: "2021-07-18T04:00:00Z",
+		Uid:       87615293,
+		Repo:      "https://github.com/studydash/cards",
+		Active:    true,
+	}
+	m.BuildMember()
+	fbservices.AddMember("studyMembers", m.Handle, m)
 }

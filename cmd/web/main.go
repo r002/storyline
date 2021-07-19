@@ -135,9 +135,9 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().GhRepoEndpoint,
 		config.GetEnvVars().GcpProject,
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.12",
-		"Saturday - July 17, 2021",
-		"🛠 Set up GitHub Action for 'deploy-appengine' to QA",
+		"0.0.13",
+		"Sunday - July 18, 2021",
+		"👩 Add 'Jassa' to the 'adminscripts'",
 	)
 	w.Write([]byte(s))
 }
