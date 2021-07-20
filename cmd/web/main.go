@@ -135,9 +135,9 @@ func handleInfo(w http.ResponseWriter) {
 		config.GetEnvVars().GhRepoEndpoint,
 		config.GetEnvVars().GcpProject,
 		config.GetEnvVars().FirestoreEndpoint,
-		"0.0.17",
+		"0.0.19",
 		"Tuesday - July 20, 2021",
-		"🧪 Testing GitHub Action on commit-to-fork & PR to 'main'",
+		"🚚 Add 'deploy-gcf' to PROD GitHub Action. UpdateMemberMetrics() GCF now deployed on every PROD push.",
 	)
 	w.Write([]byte(s))
 }
