@@ -1,9 +1,12 @@
 on:
   push:
     branches:
-      - qa
+      - 'qa/**'
+  pull_request:
+    branches:
+      - 'qa/**'
 
-name: Deploy to Google App Engine QA Environment
+name: Deploy to Google App Engine QA
 
 jobs:
   deploy:
