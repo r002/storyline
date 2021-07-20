@@ -21,5 +21,15 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT }}
           credentials: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Show Output
-        run: echo ${{ steps.deploy.outputs.url }}
+      - name: Deploy Google Cloud Functions
+        id: deploy-gcf
+        uses: google-github-actions/deploy-cloud-functions@main
+        with:
+          name: UpdateMemberMetrics
+          runtime: go113
+          env_vars_file: cloudfunctions.yaml
+          project_id: ${{ secrets.GCF_PROJECT }}
+          credentials: ${{ secrets.GCP_SA_KEY }}
+          event_trigger_type: google.pubsub.topic.publish
+          event_trigger_resource: ${{ secrets.TOPIC }}
+          event_trigger_service: pubsub.googleapis.com
