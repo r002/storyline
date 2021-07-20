@@ -1,13 +1,16 @@
 on:
   push:
     branches:
+      - qa
+  pull_request:
+    branches:
       - main
 
-name: Deploy to Google App Engine PROD
+name: Deploy to Google App Engine QA
 
 jobs:
   deploy:
-    environment: prod
+    environment: qa
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,7 +20,7 @@ jobs:
         id: deploy
         uses: google-github-actions/deploy-appengine@v0.2.0
         with:
-          deliverables: app.yaml
+          deliverables: app.qa.yaml
           project_id: ${{ secrets.GCP_PROJECT }}
           credentials: ${{ secrets.GCP_SA_KEY }}
 
